@@ -1,0 +1,1 @@
+![Diagrama](clases.svg)

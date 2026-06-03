@@ -1,0 +1,1 @@
+![Diagrama](despliegueComponente.svg)
