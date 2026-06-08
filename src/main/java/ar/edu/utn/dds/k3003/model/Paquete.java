@@ -1,16 +1,28 @@
 package ar.edu.utn.dds.k3003.model;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "paquetes")
 public class Paquete {
+    @Id
     private String id;
     private String donacionID;
     private String productos;
     private Integer cantidad;
+
+    @ManyToOne
+    @JoinColumn(name = "deposito_id")
+    private Deposito deposito;
 
     public Paquete(String id,String donacionID, String productos, Integer cantidad) {
         this.id = id;
         this.donacionID = donacionID;
         this.productos = productos;
         this.cantidad = cantidad;
+    }
+
+    protected Paquete() {
     }
 
     //GETTER Y SETTER

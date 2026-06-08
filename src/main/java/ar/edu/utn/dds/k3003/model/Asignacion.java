@@ -1,8 +1,6 @@
 package ar.edu.utn.dds.k3003.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
@@ -14,6 +12,7 @@ public class Asignacion {
     private String paqueteID;
     private String necesidadID;
     private LocalDateTime fecha;
+    @Enumerated(EnumType.STRING)
     private EstadoAsignacionEnum estado;
 
     public Asignacion(String id, String paqueteID, String necesidadID, LocalDateTime fecha, EstadoAsignacionEnum estado) {
@@ -22,6 +21,9 @@ public class Asignacion {
         this.necesidadID = necesidadID;
         this.fecha = fecha;
         this.estado = estado;
+    }
+
+    protected Asignacion() {
     }
 
     //GETTER Y SETTERS

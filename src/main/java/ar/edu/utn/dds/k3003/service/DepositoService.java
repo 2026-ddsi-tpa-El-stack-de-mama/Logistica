@@ -6,6 +6,8 @@ import ar.edu.utn.dds.k3003.catedra.dtos.logistica.PaqueteDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.TipoAlgoritmoEnum;
 import ar.edu.utn.dds.k3003.model.Deposito;
 import ar.edu.utn.dds.k3003.model.Paquete;
+import ar.edu.utn.dds.k3003.repositories.DepositoRepository;
+import ar.edu.utn.dds.k3003.repositories.PaqueteRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -13,48 +15,40 @@ import java.util.*;
 @Service
 public class DepositoService {
     private Fachada fachada;
-    private final List<Deposito> depositos;
-    List<Paquete> paquetes = new ArrayList<>();
+    private final DepositoRepository depositoR;
+    private final PaqueteRepository paqueteR;
 
-    public DepositoService(){
+    public DepositoService(DepositoRepository depositoR, PaqueteRepository paqueteR){
+        this.depositoR = depositoR;
+        this.paqueteR = paqueteR;
 
-        depositos = new ArrayList<>();
+        Deposito deposito1 = new Deposito("1", "Depósito Central", TipoAlgoritmoEnum.SUB_ATENDIDOS, "Av. Rivadavia 1234", 500,new ArrayList<>());
+        Deposito deposito2 = new Deposito("2", "Depósito Norte", TipoAlgoritmoEnum.PRIORIDAD_POR_SCORE, "Calle Belgrano 456", 300, new ArrayList<>());
+        Deposito deposito3 = new Deposito("3", "Depósito Solidario", TipoAlgoritmoEnum.SUB_ATENDIDOS, "San Martín 789", 1000, new ArrayList<>());
+        Deposito deposito4 = new Deposito("4", "Depósito Oeste", TipoAlgoritmoEnum.PRIORIDAD_POR_SCORE, "Mitre 321", 750, new ArrayList<>());
 
-        Deposito deposito1 = new Deposito("1", "Depósito Central", TipoAlgoritmoEnum.SUB_ATENDIDOS, "Av. Rivadavia 1234", 500, paquetes);
-        Deposito deposito2 = new Deposito("2", "Depósito Norte", TipoAlgoritmoEnum.PRIORIDAD_POR_SCORE, "Calle Belgrano 456", 300, paquetes);
-        Deposito deposito3 = new Deposito("3", "Depósito Solidario", TipoAlgoritmoEnum.SUB_ATENDIDOS, "San Martín 789", 1000, paquetes);
-        Deposito deposito4 = new Deposito("4", "Depósito Oeste", TipoAlgoritmoEnum.PRIORIDAD_POR_SCORE, "Mitre 321", 750, paquetes);
-
-        depositos.addAll(Arrays.asList(deposito1, deposito2, deposito3, deposito4));
+        depositoR.save(deposito1);
+        depositoR.save(deposito2);
+        depositoR.save(deposito3);
+        depositoR.save(deposito4);
     }
     public Optional<Deposito> getDeposito(String id) {
-        Optional<Deposito> optional = Optional.empty();
-        for(Deposito d : depositos){
-            if(id.equals(d.getId())){
-                optional = Optional.of(d);
-                return optional;
-            }
-        } return optional;
+        return depositoR.findById(id);
     }
 
     public List<Deposito> getDepositos() {
-        return depositos;
+        return depositoR.findAll();
     }
 
     public Deposito postDeposito(Deposito deposito) {
-        depositos.add(deposito);
+        depositoR.save(deposito);
         return deposito;
     }
 
     public Optional<Deposito> deleteDeposito(String id) {
-        Optional<Deposito> optional = Optional.empty();
-        for(Deposito d : depositos){
-            if(Objects.equals(id, d.getId())){
-                optional = Optional.of(d);
-                depositos.remove(d);
-                return optional;
-            }
-        } return optional;
+        Optional<Deposito> deposito = depositoR.findById(id);
+        depositoR.deleteById(id);
+        return deposito;
     }
 
     public Deposito postDonacion(String depositoID, String donacionID, String productoID, Integer cantidad){

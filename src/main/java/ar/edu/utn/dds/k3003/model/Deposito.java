@@ -1,19 +1,20 @@
 package ar.edu.utn.dds.k3003.model;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.TipoAlgoritmoEnum;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.util.List;
 
 @Entity
-@Table(name = "depositos") //SEGUIR
+@Table(name = "depositos")
 public class Deposito {
-
+    @Id
     private String id;
     private String nombre;
+    @Enumerated(EnumType.STRING)
     private TipoAlgoritmoEnum algoritmo;
     private String direccion;
     private Integer capacidadMaxima;
+    @OneToMany(mappedBy = "deposito")
     private List<Paquete> stockActual;
 
     public Deposito(String id, String nombre, TipoAlgoritmoEnum algoritmo, String direccion, Integer capacidadMaxima, List<Paquete> stockActual){
@@ -23,6 +24,9 @@ public class Deposito {
         this.direccion = direccion;
         this.capacidadMaxima = capacidadMaxima;
         this.stockActual = stockActual;
+    }
+
+    protected Deposito() {
     }
 
     //GETTER Y SETTERS
