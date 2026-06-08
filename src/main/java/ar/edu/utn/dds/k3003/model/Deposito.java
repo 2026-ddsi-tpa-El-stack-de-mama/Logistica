@@ -1,8 +1,12 @@
 package ar.edu.utn.dds.k3003.model;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.TipoAlgoritmoEnum;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 import java.util.List;
 
+@Entity
+@Table(name = "depositos") //SEGUIR
 public class Deposito {
 
     private String id;

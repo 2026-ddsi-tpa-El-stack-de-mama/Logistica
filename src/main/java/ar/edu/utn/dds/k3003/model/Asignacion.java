@@ -1,8 +1,15 @@
 package ar.edu.utn.dds.k3003.model;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name="asignaciones")
 public class Asignacion {
+    @Id
     private String id;
     private String paqueteID;
     private String necesidadID;
