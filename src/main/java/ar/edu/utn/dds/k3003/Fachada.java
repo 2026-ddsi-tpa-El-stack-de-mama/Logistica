@@ -7,7 +7,10 @@ import ar.edu.utn.dds.k3003.catedra.dtos.logistica.*;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonaciones;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaLogistica;
+import ar.edu.utn.dds.k3003.model.Asignacion;
 import ar.edu.utn.dds.k3003.model.Deposito;
+import ar.edu.utn.dds.k3003.model.EstadoAsignacionEnum;
+import ar.edu.utn.dds.k3003.model.Paquete;
 import ar.edu.utn.dds.k3003.repositories.AsignacionRepository;
 import ar.edu.utn.dds.k3003.repositories.DepositoRepository;
 import ar.edu.utn.dds.k3003.repositories.PaqueteRepository;
@@ -27,7 +30,6 @@ public class Fachada implements FachadaLogistica {
   private final PaqueteRepository paqueteR;
   private final AsignacionRepository asignacionR;
   public Fachada(DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR) {
-
       this.depositoR = depositoR;
       this.paqueteR = paqueteR;
       this.asignacionR = asignacionR;
@@ -63,7 +65,7 @@ public class Fachada implements FachadaLogistica {
 
   @Override
   public DepositoDTO buscarDepositoPorID(String depositoID) throws NoSuchElementException {
-    Deposito deposito = depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe"));
+    Deposito deposito = depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe el depósito"));
     return new DepositoDTO(
             deposito.getId(),
             deposito.getAlgoritmo(),
@@ -77,51 +79,59 @@ public class Fachada implements FachadaLogistica {
 
   @Override
   public AsignacionDTO buscarAsignacionPorPaqueteID(String paqueteID) throws NoSuchElementException {
-    try{
-      return asignacionR.findById(paqueteID);
-    }
-    catch(NullPointerException e){
-      throw new RuntimeException("No existe la asignación");
-    }
+      Asignacion asignacion = asignacionR.findByPaqueteID(paqueteID).orElseThrow(() -> new RuntimeException("No existe la asignación"));
+      EstadoAsginacionEnum estado;
+      if (asignacion.getEstado() == EstadoAsignacionEnum.ASIGNADA){estado = EstadoAsginacionEnum.ASIGNADA;}
+      else{estado = EstadoAsginacionEnum.COMPLETADA;}
+      return new AsignacionDTO(
+              asignacion.getId(),
+              paqueteID,
+              asignacion.getNecesidadID(),
+              asignacion.getFecha(),
+              estado
+      );
   }
 
   @Override
   public DepositoDTO gestionarDonacion(String depositoID, String donacionID, String productoID, Integer cantidad) throws NoSuchElementException {
     int id = Math.toIntExact(depositoR.count());
     DepositoDTO deposito = buscarDepositoPorID(depositoID);
-    PaqueteDTO paquete = new PaqueteDTO(
+    PaqueteDTO paqueteDTO = new PaqueteDTO(
             Integer.toString(id),
             donacionID,
             productoID,
             cantidad
     );
+    Paquete paquete = new Paquete(
+            Integer.toString(id),
+            donacionID,
+            productoID,
+            cantidad
+    );
+    paqueteR.save(paquete);
+
     List<NecesidadMaterialDTO> necesidadesMaterial = fachadaDonadoresYEntidades.obtenerNecesidadesInsatisfechasDe(productoID).stream()
-            .filter(necesidad -> necesidad.tipo() == TipoNecesidadMaterialEnum.EXTRAORDINARIA|| paquete.cantidad() >= necesidad.cantidadObjetivo())
+            .filter(necesidad -> necesidad.tipo() == TipoNecesidadMaterialEnum.EXTRAORDINARIA|| cantidad>= necesidad.cantidadObjetivo())
             .toList();
 
-    if (paquete.cantidad() <= 0){
+    if (paqueteDTO.cantidad() <= 0){
       throw new RuntimeException("No hay cantidad suficiente");
     }
     if(necesidadesMaterial.isEmpty()){
       throw new RuntimeException("No hay necesidades");
     }
-    ejecutarMatchmaking(depositoID, paquete, necesidadesMaterial);
+    ejecutarMatchmaking(depositoID, paqueteDTO, necesidadesMaterial);
 
     return deposito;
   }
 
   @Override
   public void setAlgoritmoMM(String depositoID, TipoAlgoritmoEnum tipoAlgoritmo) {
-    DepositoDTO deposito = buscarDepositoPorID(depositoID);
-    DepositoDTO depositoNuevo = new DepositoDTO(
-            deposito.id(),
-            tipoAlgoritmo,
-            deposito.nombre(),
-            deposito.direccion(),
-            deposito.capacidadMaxima(),
-            deposito.stockActual()
-    );
-    depositoR.save(depositoNuevo);
+    Deposito deposito = depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe el depósito"));
+
+    deposito.setAlgoritmo(tipoAlgoritmo);
+
+    depositoR.save(deposito);
   }
   @Override
   public AsignacionDTO ejecutarMatchmaking(String depositoID, PaqueteDTO paqueteDTO, List<NecesidadMaterialDTO> necesidades) {
@@ -148,15 +158,22 @@ public class Fachada implements FachadaLogistica {
     if (necesidadID == null) {
       necesidadID = "necesidad1";
     }
-    AsignacionDTO asignacion = new AsignacionDTO(
+    AsignacionDTO asignacionDTO = new AsignacionDTO(
             Integer.toString(id),
             paqueteDTO.id(),
             necesidadID,
             tiempo,
             estado
     );
-   asignacionR.save(asignacion);
-    return asignacion;
+    Asignacion asignacion = new Asignacion(
+            Integer.toString(id),
+            paqueteDTO.id(),
+            necesidadID,
+            tiempo,
+            EstadoAsignacionEnum.ASIGNADA
+    );
+    asignacionR.save(asignacion);
+    return asignacionDTO;
   }
 
   @Override
@@ -164,23 +181,14 @@ public class Fachada implements FachadaLogistica {
     if (paqueteDTO == null) {
       throw new RuntimeException();
     }
-    AsignacionDTO asignacion = buscarAsignacionPorPaqueteID(paqueteDTO.id());
+    Asignacion asignacion = asignacionR.findByPaqueteID(paqueteDTO.id()).orElseThrow(() -> new RuntimeException("No existe la asignación"));
 
-    AsignacionDTO asignacionNueva = new AsignacionDTO(
-            asignacion.id(),
-            asignacion.paqueteID(),
-            asignacion.necesidadID(),
-            asignacion.fecha(),
-            EstadoAsginacionEnum.COMPLETADA
-    );
+    asignacion.setEstado(EstadoAsignacionEnum.COMPLETADA);
 
-    asignacionR.save(asignacionNueva);
+    asignacionR.save(asignacion);
 
-    fachadaDonadoresYEntidades.satisfacerNecesidad(asignacionNueva.necesidadID(), paqueteDTO.cantidad());
-    fachadaDonaciones.cambiarEstadoDeDonacion(
-            paqueteDTO.donacionID(),
-            EstadoDonacionEnum.ACEPTADA
-    );
+    fachadaDonadoresYEntidades.satisfacerNecesidad(asignacion.getNecesidadID(), paqueteDTO.cantidad());
+    fachadaDonaciones.cambiarEstadoDeDonacion(paqueteDTO.donacionID(), EstadoDonacionEnum.ACEPTADA);
   }
 
   @Override
