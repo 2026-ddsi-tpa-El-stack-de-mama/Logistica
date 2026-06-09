@@ -2,6 +2,7 @@ package ar.edu.utn.dds.k3003.controllers;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.PaqueteDTO;
 import ar.edu.utn.dds.k3003.model.Deposito;
+import ar.edu.utn.dds.k3003.model.Paquete;
 import ar.edu.utn.dds.k3003.service.DepositoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -41,12 +42,12 @@ public class DepositoController {
     }
 
     @PostMapping("/depositos/{id}/donacion")
-    public Deposito postDonacion(@PathVariable String id, @RequestParam String donacionID, @RequestParam String productoID, @RequestParam Integer cantidad){
-        return depositoService.postDonacion(id, donacionID, productoID, cantidad);
+    public String postDonacion(@PathVariable String id, @RequestBody Paquete paquete){
+        return depositoService.postDonacion(id, paquete);
     }
 
     @PostMapping("/entregas")
-    public void postEntrega(@RequestParam PaqueteDTO paquete){
+    public void postEntrega(@RequestBody PaqueteDTO paquete){
         depositoService.postEntrega(paquete);
     }
 

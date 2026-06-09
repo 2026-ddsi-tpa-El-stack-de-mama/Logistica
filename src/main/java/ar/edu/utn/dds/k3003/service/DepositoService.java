@@ -14,11 +14,12 @@ import java.util.*;
 
 @Service
 public class DepositoService {
-    private Fachada fachada;
+    private final Fachada fachada;
     private final DepositoRepository depositoR;
     private final PaqueteRepository paqueteR;
 
-    public DepositoService(DepositoRepository depositoR, PaqueteRepository paqueteR){
+    public DepositoService(Fachada fachada, DepositoRepository depositoR, PaqueteRepository paqueteR){
+        this.fachada = fachada;
         this.depositoR = depositoR;
         this.paqueteR = paqueteR;
 
@@ -51,16 +52,9 @@ public class DepositoService {
         return deposito;
     }
 
-    public Deposito postDonacion(String depositoID, String donacionID, String productoID, Integer cantidad){
-        DepositoDTO depositoDTO = fachada.gestionarDonacion(depositoID, donacionID, productoID, cantidad);
-        return new Deposito(
-                depositoID,
-                depositoDTO.nombre(),
-                depositoDTO.algoritmo(),
-                depositoDTO.direccion(),
-                depositoDTO.capacidadMaxima(),
-                null
-        );
+    public String postDonacion(String depositoID, Paquete paquete){
+        //DepositoDTO depositoDTO = fachada.gestionarDonacion(depositoID, paquete.getDonacionID(), paquete.getProductos(), paquete.getCantidad());
+        return paquete.getId();
     }
     /*Se que esto no es correcto pero como sé que no puedo probarlo
     (al necesitar otra fachada), lo dejo así y en la entrega 3 lo

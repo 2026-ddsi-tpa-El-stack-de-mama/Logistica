@@ -7,65 +7,78 @@ import ar.edu.utn.dds.k3003.catedra.dtos.logistica.*;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonaciones;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaLogistica;
+import ar.edu.utn.dds.k3003.model.Deposito;
+import ar.edu.utn.dds.k3003.repositories.AsignacionRepository;
+import ar.edu.utn.dds.k3003.repositories.DepositoRepository;
+import ar.edu.utn.dds.k3003.repositories.PaqueteRepository;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 
 import static java.lang.Double.compare;
 
+@Service
 public class Fachada implements FachadaLogistica {
-  private final Map<Integer, DepositoDTO> depositos = new HashMap<>();
-  private final Map<String, AsignacionDTO> asignaciones = new HashMap<>();
   private FachadaDonadoresYEntidades fachadaDonadoresYEntidades;
   private FachadaDonaciones fachadaDonaciones;
+  private final DepositoRepository depositoR;
+  private final PaqueteRepository paqueteR;
+  private final AsignacionRepository asignacionR;
+  public Fachada(DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR) {
 
-  public Fachada() {
-
+      this.depositoR = depositoR;
+      this.paqueteR = paqueteR;
+      this.asignacionR = asignacionR;
   }
 
   @Override
   public DepositoDTO agregarDeposito(DepositoDTO deposito) {
-    int id = depositos.size() + 1;
+    int id = Math.toIntExact(depositoR.count() + 1);
     if (deposito.id() != null){
       throw new RuntimeException("Depósito inexistente");
     }
     else{
-      DepositoDTO dep = new DepositoDTO(
+      DepositoDTO depDTO = new DepositoDTO(
               Integer.toString(id),
               null,
               deposito.nombre(),
               deposito.direccion(),
               deposito.capacidadMaxima(),
-              deposito.stockActual()
+              null
       );
-      depositos.put(id, dep);
-      return dep;
+      Deposito dep = new Deposito(
+              Integer.toString(id),
+              deposito.nombre(),
+              null,
+              deposito.direccion(),
+              deposito.capacidadMaxima(),
+              null
+      );
+        depositoR.save(dep);
+        return depDTO;
     }
   }
 
   @Override
   public DepositoDTO buscarDepositoPorID(String depositoID) throws NoSuchElementException {
-    try{
-      Integer id = Integer.parseInt(depositoID);
-      if (depositos.containsKey(id)){
-        return depositos.get(id);
-      }
-      else{
-        throw new RuntimeException("No se encontró el depósito");
-      }
-    }
-    catch(NumberFormatException e){
-      throw new RuntimeException("Inexistente");
-    }
+    Deposito deposito = depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe"));
+    return new DepositoDTO(
+            deposito.getId(),
+            deposito.getAlgoritmo(),
+            deposito.getNombre(),
+            deposito.getDireccion(),
+            deposito.getCapacidadMaxima(),
+            null
+    );
   }
+
 
   @Override
   public AsignacionDTO buscarAsignacionPorPaqueteID(String paqueteID) throws NoSuchElementException {
     try{
-      return asignaciones.get(paqueteID);
+      return asignacionR.findById(paqueteID);
     }
     catch(NullPointerException e){
       throw new RuntimeException("No existe la asignación");
@@ -74,7 +87,7 @@ public class Fachada implements FachadaLogistica {
 
   @Override
   public DepositoDTO gestionarDonacion(String depositoID, String donacionID, String productoID, Integer cantidad) throws NoSuchElementException {
-    int id = depositos.size();
+    int id = Math.toIntExact(depositoR.count());
     DepositoDTO deposito = buscarDepositoPorID(depositoID);
     PaqueteDTO paquete = new PaqueteDTO(
             Integer.toString(id),
@@ -108,14 +121,11 @@ public class Fachada implements FachadaLogistica {
             deposito.capacidadMaxima(),
             deposito.stockActual()
     );
-    depositos.put(
-            Integer.parseInt(depositoID),
-            depositoNuevo
-    );
+    depositoR.save(depositoNuevo);
   }
   @Override
   public AsignacionDTO ejecutarMatchmaking(String depositoID, PaqueteDTO paqueteDTO, List<NecesidadMaterialDTO> necesidades) {
-    int id = asignaciones.size() + 1;
+    int id = Math.toIntExact(asignacionR.count() + 1);
     LocalDateTime tiempo = LocalDateTime.now();
     EstadoAsginacionEnum estado = EstadoAsginacionEnum.ASIGNADA;
     DepositoDTO deposito = buscarDepositoPorID(depositoID);
@@ -145,7 +155,7 @@ public class Fachada implements FachadaLogistica {
             tiempo,
             estado
     );
-    asignaciones.put(paqueteDTO.id(), asignacion);
+   asignacionR.save(asignacion);
     return asignacion;
   }
 
@@ -164,7 +174,7 @@ public class Fachada implements FachadaLogistica {
             EstadoAsginacionEnum.COMPLETADA
     );
 
-    asignaciones.put(paqueteDTO.id(), asignacionNueva);
+    asignacionR.save(asignacionNueva);
 
     fachadaDonadoresYEntidades.satisfacerNecesidad(asignacionNueva.necesidadID(), paqueteDTO.cantidad());
     fachadaDonaciones.cambiarEstadoDeDonacion(
