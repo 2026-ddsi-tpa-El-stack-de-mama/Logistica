@@ -51,4 +51,15 @@ public class DepositoController {
         return depositoService.postEntrega(paquete);
     }
 
+
+    @GetMapping("/ping-datadog")
+    public String ping() {
+        System.out.println("ENTRÓ AL ENDPOINT");
+
+        depositoService.enviarLogADatadog("Ping Datadog desde Render 🚀");
+
+        return "ok";
+    }
+
+
 }
