@@ -88,6 +88,10 @@ public class DepositoService {
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
             conn.setRequestMethod("POST");
+
+            String apiKey = System.getenv("DD_API_KEY");
+            conn.setRequestProperty("DD-API-KEY", apiKey);
+
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setDoOutput(true);
 
