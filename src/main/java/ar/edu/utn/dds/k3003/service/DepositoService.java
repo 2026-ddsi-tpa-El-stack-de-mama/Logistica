@@ -9,7 +9,6 @@ import ar.edu.utn.dds.k3003.repositories.AsignacionRepository;
 import ar.edu.utn.dds.k3003.repositories.DepositoRepository;
 import ar.edu.utn.dds.k3003.repositories.PaqueteRepository;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.css.Counter;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -21,16 +20,14 @@ public class DepositoService {
     private final DepositoRepository depositoR;
     private final PaqueteRepository paqueteR;
     private final AsignacionRepository asignacionR;
-    private int exitosDB;
-    private int fallasDB;
+    //private int exitosDB;
+    //private int fallasDB;
 
-    public DepositoService(Fachada fachada, DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR, int exitosDB, int fallasDB){
+    public DepositoService(Fachada fachada, DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR){
         this.fachada = fachada;
         this.depositoR = depositoR;
         this.paqueteR = paqueteR;
         this.asignacionR = asignacionR;
-        this.exitosDB = exitosDB;
-        this.fallasDB = fallasDB;
 
         Deposito deposito1 = new Deposito("1", "Depósito Central", TipoAlgoritmoEnum.SUB_ATENDIDOS, "Av. Rivadavia 1234", 500,new ArrayList<>());
         Deposito deposito2 = new Deposito("2", "Depósito Norte", TipoAlgoritmoEnum.PRIORIDAD_POR_SCORE, "Calle Belgrano 456", 300, new ArrayList<>());
