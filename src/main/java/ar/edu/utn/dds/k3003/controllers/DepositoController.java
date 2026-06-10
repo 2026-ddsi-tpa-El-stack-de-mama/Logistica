@@ -19,7 +19,6 @@ public class DepositoController {
         this.depositoService = depositoService;
     }
 
-
     @GetMapping("/depositos/{id}")
     public Deposito getDeposito(@PathVariable String id){
         Optional<Deposito> deposito = depositoService.getDeposito(id);
