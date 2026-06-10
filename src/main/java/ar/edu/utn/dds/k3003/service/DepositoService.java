@@ -62,10 +62,10 @@ public class DepositoService {
         try{
             depositoR.findById(depositoID);
             fachada.gestionarDonacion(depositoID, paquete.getDonacionID(), paquete.getProductos(), paquete.getCantidad());
-            exitosDB++;
+            //exitosDB++;
             enviarLogADatadog("Nueva donación: deposito=" + depositoID);
         } catch (NoSuchElementException e) {
-            fallasDB++;
+            //fallasDB++;
             throw new RuntimeException(e);
         }
 
