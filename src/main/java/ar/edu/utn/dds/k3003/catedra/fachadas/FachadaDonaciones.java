@@ -14,7 +14,7 @@ public interface FachadaDonaciones {
 
   DonacionDTO buscarDonacionPorID(String donacionID) throws NoSuchElementException;
 
-  DonacionDTO cambiarEstadoDeDonacion(String donacionID, EstadoDonacionEnum estado)
+  void cambiarEstadoDeDonacion(String donacionID, EstadoDonacionEnum estado)
       throws NoSuchElementException;
 
   List<DonacionDTO> buscarPorDonadorYFechaInicio(String donadorID, LocalDate fecha)

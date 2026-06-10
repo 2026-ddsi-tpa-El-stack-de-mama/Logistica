@@ -47,8 +47,8 @@ public class DepositoController {
     }
 
     @PostMapping("/entregas")
-    public void postEntrega(@RequestBody PaqueteDTO paquete){
-        depositoService.postEntrega(paquete);
+    public String postEntrega(@RequestBody PaqueteDTO paquete){
+        return depositoService.postEntrega(paquete);
     }
 
 }

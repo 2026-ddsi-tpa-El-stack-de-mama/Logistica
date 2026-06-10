@@ -29,7 +29,7 @@ public interface FachadaDonadoresYEntidades {
 
   List<NecesidadMaterialDTO> obtenerNecesidadesInsatisfechasDe(String productoSolicitadoID);
 
-  NecesidadMaterialDTO satisfacerNecesidad(String necesidadID, Integer cantidad)
+  void satisfacerNecesidad(String necesidadID, Integer cantidad)
       throws NoSuchElementException;
 
   DonadorStatsDTO estadisticasDonador(String donadorID);

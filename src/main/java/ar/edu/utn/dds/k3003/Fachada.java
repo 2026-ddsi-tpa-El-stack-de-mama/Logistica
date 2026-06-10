@@ -14,6 +14,7 @@ import ar.edu.utn.dds.k3003.model.Paquete;
 import ar.edu.utn.dds.k3003.repositories.AsignacionRepository;
 import ar.edu.utn.dds.k3003.repositories.DepositoRepository;
 import ar.edu.utn.dds.k3003.repositories.PaqueteRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,10 +30,14 @@ public class Fachada implements FachadaLogistica {
   private final DepositoRepository depositoR;
   private final PaqueteRepository paqueteR;
   private final AsignacionRepository asignacionR;
-  public Fachada(DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR) {
+
+  @Autowired
+  public Fachada(DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR, FachadaDonadoresYEntidades fachadaDonadoresYEntidades, FachadaDonaciones fachadaDonaciones) {
       this.depositoR = depositoR;
       this.paqueteR = paqueteR;
       this.asignacionR = asignacionR;
+      setFachadaDonadoresYEntidades(fachadaDonadoresYEntidades);
+      setFachadaDonaciones(fachadaDonaciones);
   }
 
   @Override
@@ -94,16 +99,16 @@ public class Fachada implements FachadaLogistica {
 
   @Override
   public DepositoDTO gestionarDonacion(String depositoID, String donacionID, String productoID, Integer cantidad) throws NoSuchElementException {
-    int id = Math.toIntExact(depositoR.count());
+    String id = "paq" + depositoR.count();
     DepositoDTO deposito = buscarDepositoPorID(depositoID);
     PaqueteDTO paqueteDTO = new PaqueteDTO(
-            Integer.toString(id),
+            id,
             donacionID,
             productoID,
             cantidad
     );
     Paquete paquete = new Paquete(
-            Integer.toString(id),
+            id,
             donacionID,
             productoID,
             cantidad

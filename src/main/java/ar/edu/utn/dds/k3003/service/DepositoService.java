@@ -1,11 +1,11 @@
 package ar.edu.utn.dds.k3003.service;
 
 import ar.edu.utn.dds.k3003.Fachada;
-import ar.edu.utn.dds.k3003.catedra.dtos.logistica.DepositoDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.PaqueteDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.TipoAlgoritmoEnum;
 import ar.edu.utn.dds.k3003.model.Deposito;
 import ar.edu.utn.dds.k3003.model.Paquete;
+import ar.edu.utn.dds.k3003.repositories.AsignacionRepository;
 import ar.edu.utn.dds.k3003.repositories.DepositoRepository;
 import ar.edu.utn.dds.k3003.repositories.PaqueteRepository;
 import org.springframework.stereotype.Service;
@@ -17,11 +17,13 @@ public class DepositoService {
     private final Fachada fachada;
     private final DepositoRepository depositoR;
     private final PaqueteRepository paqueteR;
+    private final AsignacionRepository asignacionR;
 
-    public DepositoService(Fachada fachada, DepositoRepository depositoR, PaqueteRepository paqueteR){
+    public DepositoService(Fachada fachada, DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR){
         this.fachada = fachada;
         this.depositoR = depositoR;
         this.paqueteR = paqueteR;
+        this.asignacionR = asignacionR;
 
         Deposito deposito1 = new Deposito("1", "Depósito Central", TipoAlgoritmoEnum.SUB_ATENDIDOS, "Av. Rivadavia 1234", 500,new ArrayList<>());
         Deposito deposito2 = new Deposito("2", "Depósito Norte", TipoAlgoritmoEnum.PRIORIDAD_POR_SCORE, "Calle Belgrano 456", 300, new ArrayList<>());
@@ -53,15 +55,15 @@ public class DepositoService {
     }
 
     public String postDonacion(String depositoID, Paquete paquete){
-        //DepositoDTO depositoDTO = fachada.gestionarDonacion(depositoID, paquete.getDonacionID(), paquete.getProductos(), paquete.getCantidad());
+        depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("Depósito no encontrado"));
+        fachada.gestionarDonacion(depositoID, paquete.getDonacionID(), paquete.getProductos(), paquete.getCantidad());
         return paquete.getId();
     }
-    /*Se que esto no es correcto pero como sé que no puedo probarlo
-    (al necesitar otra fachada), lo dejo así y en la entrega 3 lo
-    arreglaré con mi grupo
-     */
-    public void postEntrega(PaqueteDTO paquete){
+    public String postEntrega(PaqueteDTO paquete){
+        paqueteR.findById(paquete.id()).orElseThrow(() -> new RuntimeException("Paquete no encontrado"));
+        asignacionR.findByPaqueteID(paquete.id()).orElseThrow(() -> new RuntimeException("Asignación no encontrada"));
         fachada.reportarEntrega(paquete);
+        return "Llegó el paquete " + paquete.id();
     }
 }
 
