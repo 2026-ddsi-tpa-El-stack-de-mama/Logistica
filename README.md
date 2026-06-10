@@ -13,7 +13,7 @@
 ---
 
 🧩 Link al despliegue en Render
-- https://entrega-2-aculeddu-1.onrender.com
+- https://logistica-jc94.onrender.com
 ---
 
 ### ⚠️ Importante
