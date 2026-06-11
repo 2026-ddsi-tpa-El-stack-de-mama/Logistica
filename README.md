@@ -16,6 +16,10 @@
 - https://logistica-jc94.onrender.com
 ---
 
+🧩 Link al dashboard
+- https://p.datadoghq.com/sb/56626f49-64f3-11f1-9de1-f6f200ba7889-7e01f5ffd437b69117437846cf8e9e99
+---
+
 ### ⚠️ Importante
 
 **ARCHIVOS PROTEGIDOS:**

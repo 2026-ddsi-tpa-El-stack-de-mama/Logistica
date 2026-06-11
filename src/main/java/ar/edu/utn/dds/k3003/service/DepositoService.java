@@ -20,8 +20,6 @@ public class DepositoService {
     private final DepositoRepository depositoR;
     private final PaqueteRepository paqueteR;
     private final AsignacionRepository asignacionR;
-    //private int exitosDB;
-    //private int fallasDB;
 
     public DepositoService(Fachada fachada, DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR){
         this.fachada = fachada;
@@ -62,10 +60,7 @@ public class DepositoService {
         try{
             depositoR.findById(depositoID);
             fachada.gestionarDonacion(depositoID, paquete.getDonacionID(), paquete.getProductos(), paquete.getCantidad());
-            //exitosDB++;
-            enviarLogADatadog("Nueva donación: deposito=" + depositoID);
         } catch (NoSuchElementException e) {
-            //fallasDB++;
             throw new RuntimeException(e);
         }
 
@@ -76,32 +71,6 @@ public class DepositoService {
         asignacionR.findByPaqueteID(paquete.id()).orElseThrow(() -> new RuntimeException("Asignación no encontrada"));
         fachada.reportarEntrega(paquete);
         return "Llegó el paquete " + paquete.id();
-    }
-
-
-    public void enviarLogADatadog(String mensaje) {
-        try {
-            URL url = new URL("https://http-intake.logs.datadoghq.com/api/v2/logs");
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-
-            conn.setRequestMethod("POST");
-
-            String apiKey = System.getenv("DD_API_KEY");
-            conn.setRequestProperty("DD-API-KEY", apiKey);
-
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setDoOutput(true);
-
-            String json = "[{\"message\": \"" + mensaje + "\", \"service\": \"logistica\"}]";
-
-            conn.getOutputStream().write(json.getBytes());
-            conn.getOutputStream().flush();
-            conn.getOutputStream().close();
-
-            conn.getResponseCode();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
 }
