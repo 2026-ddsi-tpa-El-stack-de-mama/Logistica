@@ -48,7 +48,7 @@ public class Fachada implements FachadaLogistica {
     }
     else{
       DepositoDTO depDTO = new DepositoDTO(
-              Integer.toString(id),
+              "dep" + id,
               null,
               deposito.nombre(),
               deposito.direccion(),
@@ -56,7 +56,7 @@ public class Fachada implements FachadaLogistica {
               null
       );
       Deposito dep = new Deposito(
-              Integer.toString(id),
+              "dep" + id,
               deposito.nombre(),
               null,
               deposito.direccion(),
@@ -81,7 +81,6 @@ public class Fachada implements FachadaLogistica {
     );
   }
 
-
   @Override
   public AsignacionDTO buscarAsignacionPorPaqueteID(String paqueteID) throws NoSuchElementException {
       Asignacion asignacion = asignacionR.findByPaqueteID(paqueteID).orElseThrow(() -> new RuntimeException("No existe la asignación"));
@@ -101,6 +100,14 @@ public class Fachada implements FachadaLogistica {
   public DepositoDTO gestionarDonacion(String depositoID, String donacionID, String productoID, Integer cantidad) throws NoSuchElementException {
     String id = "paq" + paqueteR.count();
     DepositoDTO deposito = buscarDepositoPorID(depositoID);
+    Deposito depositoPaquete = new Deposito(
+            deposito.id(),
+            deposito.nombre(),
+            deposito.algoritmo(),
+            deposito.direccion(),
+            deposito.capacidadMaxima(),
+            null
+    );
     PaqueteDTO paqueteDTO = new PaqueteDTO(
             id,
             donacionID,
@@ -111,7 +118,8 @@ public class Fachada implements FachadaLogistica {
             id,
             donacionID,
             productoID,
-            cantidad
+            cantidad,
+            depositoPaquete
     );
     paqueteR.save(paquete);
 
@@ -140,7 +148,7 @@ public class Fachada implements FachadaLogistica {
   }
   @Override
   public AsignacionDTO ejecutarMatchmaking(String depositoID, PaqueteDTO paqueteDTO, List<NecesidadMaterialDTO> necesidades) {
-    int id = Math.toIntExact(asignacionR.count() + 1);
+    String id = "asi" + asignacionR.count() + 1;
     LocalDateTime tiempo = LocalDateTime.now();
     EstadoAsginacionEnum estado = EstadoAsginacionEnum.ASIGNADA;
     DepositoDTO deposito = buscarDepositoPorID(depositoID);
@@ -161,14 +169,14 @@ public class Fachada implements FachadaLogistica {
     }
     String necesidadID = necesidad.id();
     AsignacionDTO asignacionDTO = new AsignacionDTO(
-            Integer.toString(id),
+            id,
             paqueteDTO.id(),
             necesidadID,
             tiempo,
             estado
     );
     Asignacion asignacion = new Asignacion(
-            Integer.toString(id),
+            id,
             paqueteDTO.id(),
             necesidadID,
             tiempo,
@@ -183,10 +191,9 @@ public class Fachada implements FachadaLogistica {
     if (paqueteDTO == null) {
       throw new RuntimeException();
     }
+
     Asignacion asignacion = asignacionR.findByPaqueteID(paqueteDTO.id()).orElseThrow(() -> new RuntimeException("No existe la asignación"));
-
     asignacion.setEstado(EstadoAsignacionEnum.COMPLETADA);
-
     asignacionR.save(asignacion);
 
     fachadaDonadoresYEntidades.satisfacerNecesidad(asignacion.getNecesidadID(), paqueteDTO.cantidad());

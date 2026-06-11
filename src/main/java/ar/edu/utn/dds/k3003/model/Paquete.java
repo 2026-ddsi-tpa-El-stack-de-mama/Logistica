@@ -15,11 +15,12 @@ public class Paquete {
     @JoinColumn(name = "deposito_id")
     private Deposito deposito;
 
-    public Paquete(String id,String donacionID, String productos, Integer cantidad) {
+    public Paquete(String id, String donacionID, String productos, Integer cantidad, Deposito deposito) {
         this.id = id;
         this.donacionID = donacionID;
         this.productos = productos;
         this.cantidad = cantidad;
+        this.deposito = deposito;
     }
 
     protected Paquete() {
@@ -54,4 +55,7 @@ public class Paquete {
     public void setCantidad(Integer cantidad) {
         this.cantidad = cantidad;
     }
+
+    public Deposito getDeposito() {return deposito;}
+    public void setDeposito(Deposito deposito) {this.deposito = deposito;}
 }

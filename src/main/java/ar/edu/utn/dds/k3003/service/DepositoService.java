@@ -26,17 +26,8 @@ public class DepositoService {
         this.depositoR = depositoR;
         this.paqueteR = paqueteR;
         this.asignacionR = asignacionR;
-
-        Deposito deposito1 = new Deposito("1", "Depósito Central", TipoAlgoritmoEnum.SUB_ATENDIDOS, "Av. Rivadavia 1234", 500,new ArrayList<>());
-        Deposito deposito2 = new Deposito("2", "Depósito Norte", TipoAlgoritmoEnum.PRIORIDAD_POR_SCORE, "Calle Belgrano 456", 300, new ArrayList<>());
-        Deposito deposito3 = new Deposito("3", "Depósito Solidario", TipoAlgoritmoEnum.SUB_ATENDIDOS, "San Martín 789", 1000, new ArrayList<>());
-        Deposito deposito4 = new Deposito("4", "Depósito Oeste", TipoAlgoritmoEnum.PRIORIDAD_POR_SCORE, "Mitre 321", 750, new ArrayList<>());
-
-        depositoR.save(deposito1);
-        depositoR.save(deposito2);
-        depositoR.save(deposito3);
-        depositoR.save(deposito4);
     }
+
     public Optional<Deposito> getDeposito(String id) {
         return depositoR.findById(id);
     }
