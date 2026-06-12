@@ -16,6 +16,7 @@ import ar.edu.utn.dds.k3003.repositories.DepositoRepository;
 import ar.edu.utn.dds.k3003.repositories.PaqueteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import io.micrometer.core.instrument.MeterRegistry;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,13 +31,15 @@ public class Fachada implements FachadaLogistica {
   private final DepositoRepository depositoR;
   private final PaqueteRepository paqueteR;
   private final AsignacionRepository asignacionR;
+  private final MeterRegistry metricas;
 
   @Autowired
-  public Fachada(DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR, FachadaDonaciones fachadaDonaciones, DonadoresYEntidadesClient donadoresYEntidadesClient) {
+  public Fachada(DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR, FachadaDonaciones fachadaDonaciones, DonadoresYEntidadesClient donadoresYEntidadesClient, MeterRegistry metricas) {
       this.depositoR = depositoR;
       this.paqueteR = paqueteR;
       this.asignacionR = asignacionR;
       this.donadoresYEntidadesClient = donadoresYEntidadesClient;
+      this.metricas = metricas;
       setFachadaDonaciones(fachadaDonaciones);
   }
 
@@ -122,6 +125,7 @@ public class Fachada implements FachadaLogistica {
             depositoPaquete
     );
     paqueteR.save(paquete);
+    metricas.counter("paquetes.creados").increment();
 
     List<NecesidadMaterialDTO> necesidadesMaterial = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(productoID);
 
@@ -181,6 +185,7 @@ public class Fachada implements FachadaLogistica {
             EstadoAsignacionEnum.ASIGNADA
     );
     asignacionR.save(asignacion);
+    metricas.counter("asignaciones.creados").increment();
     return asignacionDTO;
   }
 
