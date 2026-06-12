@@ -25,19 +25,18 @@ import static java.lang.Double.compare;
 
 @Service
 public class Fachada implements FachadaLogistica {
-    private FachadaDonaciones fachadaDonaciones;
+  private FachadaDonaciones fachadaDonaciones;
   private final DonadoresYEntidadesClient donadoresYEntidadesClient;
   private final DepositoRepository depositoR;
   private final PaqueteRepository paqueteR;
   private final AsignacionRepository asignacionR;
 
   @Autowired
-  public Fachada(DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR, FachadaDonadoresYEntidades fachadaDonadoresYEntidades, FachadaDonaciones fachadaDonaciones, DonadoresYEntidadesClient donadoresYEntidadesClient) {
+  public Fachada(DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR, FachadaDonaciones fachadaDonaciones, DonadoresYEntidadesClient donadoresYEntidadesClient) {
       this.depositoR = depositoR;
       this.paqueteR = paqueteR;
       this.asignacionR = asignacionR;
       this.donadoresYEntidadesClient = donadoresYEntidadesClient;
-      setFachadaDonadoresYEntidades(fachadaDonadoresYEntidades);
       setFachadaDonaciones(fachadaDonaciones);
   }
 
