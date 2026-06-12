@@ -2,11 +2,11 @@ package ar.edu.utn.dds.k3003;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.EstadoDonacionEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.NecesidadMaterialDTO;
-import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.TipoNecesidadMaterialEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.*;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonaciones;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaLogistica;
+import ar.edu.utn.dds.k3003.clientes.DonadoresYEntidadesClient;
 import ar.edu.utn.dds.k3003.model.Asignacion;
 import ar.edu.utn.dds.k3003.model.Deposito;
 import ar.edu.utn.dds.k3003.model.EstadoAsignacionEnum;
@@ -25,17 +25,18 @@ import static java.lang.Double.compare;
 
 @Service
 public class Fachada implements FachadaLogistica {
-  private FachadaDonadoresYEntidades fachadaDonadoresYEntidades;
-  private FachadaDonaciones fachadaDonaciones;
+    private FachadaDonaciones fachadaDonaciones;
+  private final DonadoresYEntidadesClient donadoresYEntidadesClient;
   private final DepositoRepository depositoR;
   private final PaqueteRepository paqueteR;
   private final AsignacionRepository asignacionR;
 
   @Autowired
-  public Fachada(DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR, FachadaDonadoresYEntidades fachadaDonadoresYEntidades, FachadaDonaciones fachadaDonaciones) {
+  public Fachada(DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR, FachadaDonadoresYEntidades fachadaDonadoresYEntidades, FachadaDonaciones fachadaDonaciones, DonadoresYEntidadesClient donadoresYEntidadesClient) {
       this.depositoR = depositoR;
       this.paqueteR = paqueteR;
       this.asignacionR = asignacionR;
+      this.donadoresYEntidadesClient = donadoresYEntidadesClient;
       setFachadaDonadoresYEntidades(fachadaDonadoresYEntidades);
       setFachadaDonaciones(fachadaDonaciones);
   }
@@ -123,9 +124,7 @@ public class Fachada implements FachadaLogistica {
     );
     paqueteR.save(paquete);
 
-    List<NecesidadMaterialDTO> necesidadesMaterial = fachadaDonadoresYEntidades.obtenerNecesidadesInsatisfechasDe(productoID).stream()
-            .filter(necesidad -> necesidad.tipo() == TipoNecesidadMaterialEnum.EXTRAORDINARIA|| cantidad>= necesidad.cantidadObjetivo())
-            .toList();
+    List<NecesidadMaterialDTO> necesidadesMaterial = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(productoID);
 
     if (paqueteDTO.cantidad() <= 0){
       throw new RuntimeException("No hay cantidad suficiente");
@@ -196,12 +195,13 @@ public class Fachada implements FachadaLogistica {
     asignacion.setEstado(EstadoAsignacionEnum.COMPLETADA);
     asignacionR.save(asignacion);
 
-    fachadaDonadoresYEntidades.satisfacerNecesidad(asignacion.getNecesidadID(), paqueteDTO.cantidad());
+    donadoresYEntidadesClient.satisfacerNecesidad(asignacion.getNecesidadID(), paqueteDTO.cantidad());
     fachadaDonaciones.cambiarEstadoDeDonacion(paqueteDTO.donacionID(), EstadoDonacionEnum.ACEPTADA);
   }
 
   @Override
-  public void setFachadaDonadoresYEntidades(FachadaDonadoresYEntidades fachadaDonadoresYEntidades) {this.fachadaDonadoresYEntidades = fachadaDonadoresYEntidades;}
+  public void setFachadaDonadoresYEntidades(FachadaDonadoresYEntidades fachadaDonadoresYEntidades) {
+  }
 
   @Override
   public void setFachadaDonaciones(FachadaDonaciones fachadaDonaciones) {
