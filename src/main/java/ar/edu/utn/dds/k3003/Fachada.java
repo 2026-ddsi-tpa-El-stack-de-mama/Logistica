@@ -33,17 +33,15 @@ public class Fachada implements FachadaLogistica {
   private final PaqueteRepository paqueteR;
   private final AsignacionRepository asignacionR;
   private final MeterRegistry metricas;
-  private FachadaDonaciones fachadaDonaciones;
 
   @Autowired
-  public Fachada(DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR, FachadaDonaciones fachadaDonaciones, DonacionesClient donacionesClient, DonadoresYEntidadesClient donadoresYEntidadesClient, MeterRegistry metricas) {
+  public Fachada(DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR, DonacionesClient donacionesClient, DonadoresYEntidadesClient donadoresYEntidadesClient, MeterRegistry metricas) {
       this.depositoR = depositoR;
       this.paqueteR = paqueteR;
       this.asignacionR = asignacionR;
       this.donacionesClient = donacionesClient;
       this.donadoresYEntidadesClient = donadoresYEntidadesClient;
       this.metricas = metricas;
-      setFachadaDonaciones(fachadaDonaciones);
   }
 
   @Override
@@ -212,6 +210,6 @@ public class Fachada implements FachadaLogistica {
 
   @Override
   public void setFachadaDonaciones(FachadaDonaciones fachadaDonaciones) {
-    this.fachadaDonaciones = fachadaDonaciones;
+
   }
 }
