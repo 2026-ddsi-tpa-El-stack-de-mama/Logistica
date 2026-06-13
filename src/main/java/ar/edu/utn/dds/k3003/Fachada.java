@@ -127,7 +127,10 @@ public class Fachada implements FachadaLogistica {
     );
     paqueteR.save(paquete);
     metricas.counter("paquetes.creados").increment();
-
+      System.out.println(
+              paqueteR.findById(id)
+                      .isPresent()
+      );
     List<NecesidadMaterialDTO> necesidadesMaterial = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(productoID);
 
     if (paqueteDTO.cantidad() <= 0){
