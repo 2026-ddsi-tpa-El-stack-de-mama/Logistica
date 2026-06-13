@@ -203,9 +203,7 @@ public class Fachada implements FachadaLogistica {
     asignacionR.save(asignacion);
 
     donadoresYEntidadesClient.satisfacerNecesidad(asignacion.getNecesidadID(), paqueteDTO.cantidad());
-    System.out.println("ENTRE A SATISFACER NECESIDAD");
     donacionesClient.cambiarEstadoDeDonacion(paqueteDTO.donacionID(), EstadoDonacionEnum.ACEPTADA);
-    System.out.println("ENTRE A CAMBIAR ESTADO");
   }
 
   @Override
