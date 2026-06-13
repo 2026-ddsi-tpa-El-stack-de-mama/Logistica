@@ -131,8 +131,9 @@ public class Fachada implements FachadaLogistica {
               paqueteR.findById(id)
                       .isPresent()
       );
-    List<NecesidadMaterialDTO> necesidadesMaterial = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(productoID);
-
+      System.out.println("antes de entrar " + productoID);
+    List<NecesidadMaterialDTO> necesidadesMaterial = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(paquete.getProductos());
+    System.out.println("después de entrar " + productoID);
     if (paqueteDTO.cantidad() <= 0){
       throw new RuntimeException("No hay cantidad suficiente");
     }

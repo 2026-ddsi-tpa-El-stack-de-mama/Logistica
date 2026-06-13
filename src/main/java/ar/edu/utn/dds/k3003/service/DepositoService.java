@@ -2,10 +2,7 @@ package ar.edu.utn.dds.k3003.service;
 
 import ar.edu.utn.dds.k3003.Fachada;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.PaqueteDTO;
-import ar.edu.utn.dds.k3003.catedra.dtos.logistica.TipoAlgoritmoEnum;
-import ar.edu.utn.dds.k3003.clientes.DonadoresYEntidadesClient;
 import ar.edu.utn.dds.k3003.model.Deposito;
-import ar.edu.utn.dds.k3003.model.Paquete;
 import ar.edu.utn.dds.k3003.repositories.AsignacionRepository;
 import ar.edu.utn.dds.k3003.repositories.DepositoRepository;
 import ar.edu.utn.dds.k3003.repositories.PaqueteRepository;
