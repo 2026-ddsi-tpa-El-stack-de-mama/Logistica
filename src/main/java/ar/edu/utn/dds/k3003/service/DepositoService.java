@@ -46,15 +46,15 @@ public class DepositoService {
         return deposito;
     }
 
-    public String postDonacion(String depositoID, Paquete paquete){
+    public String postDonacion(String depositoID, PaqueteDTO paquete){
         try{
             depositoR.findById(depositoID);
-            fachada.gestionarDonacion(depositoID, paquete.getDonacionID(), paquete.getProductos(), paquete.getCantidad());
+            fachada.gestionarDonacion(depositoID, paquete.id(), paquete.producto(), paquete.cantidad());
         } catch (NoSuchElementException e) {
             throw new RuntimeException(e);
         }
 
-        return paquete.getId();
+        return paquete.id();
     }
     public String postEntrega(PaqueteDTO paquete){
         paqueteR.findById(paquete.id()).orElseThrow(() -> new RuntimeException("Paquete no encontrado"));

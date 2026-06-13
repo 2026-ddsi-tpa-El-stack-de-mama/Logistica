@@ -41,7 +41,7 @@ public class DepositoController {
     }
 
     @PostMapping("/depositos/{id}/donacion")
-    public String postDonacion(@PathVariable String id, @RequestBody Paquete paquete){
+    public String postDonacion(@PathVariable String id, @RequestBody PaqueteDTO paquete){
         return depositoService.postDonacion(id, paquete);
     }
 

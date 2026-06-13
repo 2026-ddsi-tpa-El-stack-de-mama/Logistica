@@ -102,7 +102,7 @@ public class Fachada implements FachadaLogistica {
 
   @Override
   public DepositoDTO gestionarDonacion(String depositoID, String donacionID, String productoID, Integer cantidad) throws NoSuchElementException {
-    String id = "paq" + paqueteR.count();
+    String id = "paq" + (paqueteR.count() - 1);
     DepositoDTO deposito = buscarDepositoPorID(depositoID);
     Deposito depositoPaquete = new Deposito(
             deposito.id(),
