@@ -15,6 +15,6 @@ public interface DonadoresYEntidadesClient {
     @GetMapping("/necesidades/insatisfechas")
     List<NecesidadMaterialDTO> obtenerNecesidadesInsatisfechasDe(@RequestParam String productoId);
 
-    @PostMapping("/{necesidadID}/satisfaccion")
+    @PostMapping("necesidades/{necesidadID}/satisfaccion")
     NecesidadMaterialDTO satisfacerNecesidad(@PathVariable String necesidadID, @RequestParam Integer cantidad);
 }

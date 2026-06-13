@@ -6,6 +6,7 @@ import ar.edu.utn.dds.k3003.catedra.dtos.logistica.*;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonaciones;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaLogistica;
+import ar.edu.utn.dds.k3003.clientes.DonacionesClient;
 import ar.edu.utn.dds.k3003.clientes.DonadoresYEntidadesClient;
 import ar.edu.utn.dds.k3003.model.Asignacion;
 import ar.edu.utn.dds.k3003.model.Deposito;
@@ -26,18 +27,20 @@ import static java.lang.Double.compare;
 
 @Service
 public class Fachada implements FachadaLogistica {
-  private FachadaDonaciones fachadaDonaciones;
+  private final DonacionesClient donacionesClient;
   private final DonadoresYEntidadesClient donadoresYEntidadesClient;
   private final DepositoRepository depositoR;
   private final PaqueteRepository paqueteR;
   private final AsignacionRepository asignacionR;
   private final MeterRegistry metricas;
+  private FachadaDonaciones fachadaDonaciones;
 
   @Autowired
-  public Fachada(DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR, FachadaDonaciones fachadaDonaciones, DonadoresYEntidadesClient donadoresYEntidadesClient, MeterRegistry metricas) {
+  public Fachada(DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR, FachadaDonaciones fachadaDonaciones, DonacionesClient donacionesClient, DonadoresYEntidadesClient donadoresYEntidadesClient, MeterRegistry metricas) {
       this.depositoR = depositoR;
       this.paqueteR = paqueteR;
       this.asignacionR = asignacionR;
+      this.donacionesClient = donacionesClient;
       this.donadoresYEntidadesClient = donadoresYEntidadesClient;
       this.metricas = metricas;
       setFachadaDonaciones(fachadaDonaciones);
@@ -200,7 +203,9 @@ public class Fachada implements FachadaLogistica {
     asignacionR.save(asignacion);
 
     donadoresYEntidadesClient.satisfacerNecesidad(asignacion.getNecesidadID(), paqueteDTO.cantidad());
-    fachadaDonaciones.cambiarEstadoDeDonacion(paqueteDTO.donacionID(), EstadoDonacionEnum.ACEPTADA);
+    System.out.println("ENTRE A SATISFACER NECESIDAD");
+    donacionesClient.cambiarEstadoDeDonacion(paqueteDTO.donacionID(), EstadoDonacionEnum.ACEPTADA);
+    System.out.println("ENTRE A CAMBIAR ESTADO");
   }
 
   @Override
