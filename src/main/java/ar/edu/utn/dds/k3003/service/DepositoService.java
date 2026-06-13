@@ -49,7 +49,7 @@ public class DepositoService {
     public String postDonacion(String depositoID, PaqueteDTO paquete){
         try{
             depositoR.findById(depositoID);
-            fachada.gestionarDonacion(depositoID, paquete.id(), paquete.producto(), paquete.cantidad());
+            fachada.gestionarDonacion(depositoID, paquete.donacionID(), paquete.producto(), paquete.cantidad());
         } catch (NoSuchElementException e) {
             throw new RuntimeException(e);
         }
