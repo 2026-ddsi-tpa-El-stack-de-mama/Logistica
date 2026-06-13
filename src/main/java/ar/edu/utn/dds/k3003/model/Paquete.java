@@ -1,5 +1,6 @@
 package ar.edu.utn.dds.k3003.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -13,6 +14,7 @@ public class Paquete {
 
     @ManyToOne
     @JoinColumn(name = "deposito_id")
+    @JsonIgnore
     private Deposito deposito;
 
     public Paquete(String id, String donacionID, String productos, Integer cantidad, Deposito deposito) {
