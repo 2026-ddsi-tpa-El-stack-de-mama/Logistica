@@ -46,29 +46,28 @@ public class Fachada implements FachadaLogistica {
 
   @Override
   public DepositoDTO agregarDeposito(DepositoDTO deposito) {
-    int id = Math.toIntExact(depositoR.count() + 1);
     if (deposito.id() != null){
       throw new RuntimeException("Depósito inexistente");
     }
     else{
-      DepositoDTO depDTO = new DepositoDTO(
-              "dep" + id,
-              null,
-              deposito.nombre(),
-              deposito.direccion(),
-              deposito.capacidadMaxima(),
-              null
-      );
       Deposito dep = new Deposito(
-              "dep" + id,
-              deposito.nombre(),
+            null,
+            deposito.nombre(),
+            null,
+            deposito.direccion(),
+            deposito.capacidadMaxima(),
+            null
+      );
+      dep = depositoR.save(dep);
+      DepositoDTO depDTO = new DepositoDTO(
+              dep.getId(),
               null,
+              deposito.nombre(),
               deposito.direccion(),
               deposito.capacidadMaxima(),
               null
       );
-        depositoR.save(dep);
-        return depDTO;
+      return depDTO;
     }
   }
 
@@ -102,7 +101,6 @@ public class Fachada implements FachadaLogistica {
 
   @Override
   public DepositoDTO gestionarDonacion(String depositoID, String donacionID, String productoID, Integer cantidad) throws NoSuchElementException {
-    String id = "paq" + (paqueteR.count() - 1);
     DepositoDTO deposito = buscarDepositoPorID(depositoID);
     Deposito depositoPaquete = new Deposito(
             deposito.id(),
@@ -112,28 +110,26 @@ public class Fachada implements FachadaLogistica {
             deposito.capacidadMaxima(),
             null
     );
-    PaqueteDTO paqueteDTO = new PaqueteDTO(
-            id,
-            donacionID,
-            productoID,
-            cantidad
-    );
     Paquete paquete = new Paquete(
-            id,
+            null,
             donacionID,
             productoID,
             cantidad,
             depositoPaquete
     );
-    paqueteR.save(paquete);
+    paquete = paqueteR.save(paquete);
+    PaqueteDTO paqueteDTO = new PaqueteDTO(
+            paquete.getId(),
+            donacionID,
+            productoID,
+            cantidad
+    );
     metricas.counter("paquetes.creados").increment();
       System.out.println(
-              paqueteR.findById(id)
+              paqueteR.findById(paquete.getId())
                       .isPresent()
       );
-      System.out.println("antes de entrar " + productoID);
     List<NecesidadMaterialDTO> necesidadesMaterial = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(paquete.getProductos());
-    System.out.println("después de entrar " + productoID);
     if (paqueteDTO.cantidad() <= 0){
       throw new RuntimeException("No hay cantidad suficiente");
     }
@@ -155,7 +151,6 @@ public class Fachada implements FachadaLogistica {
   }
   @Override
   public AsignacionDTO ejecutarMatchmaking(String depositoID, PaqueteDTO paqueteDTO, List<NecesidadMaterialDTO> necesidades) {
-    String id = "asi" + asignacionR.count() + 1;
     LocalDateTime tiempo = LocalDateTime.now();
     EstadoAsginacionEnum estado = EstadoAsginacionEnum.ASIGNADA;
     DepositoDTO deposito = buscarDepositoPorID(depositoID);
@@ -175,21 +170,22 @@ public class Fachada implements FachadaLogistica {
               }).orElseThrow(RuntimeException::new);
     }
     String necesidadID = necesidad.id();
-    AsignacionDTO asignacionDTO = new AsignacionDTO(
-            id,
-            paqueteDTO.id(),
-            necesidadID,
-            tiempo,
-            estado
-    );
     Asignacion asignacion = new Asignacion(
-            id,
+            null,
             paqueteDTO.id(),
             necesidadID,
             tiempo,
             EstadoAsignacionEnum.ASIGNADA
     );
-    asignacionR.save(asignacion);
+    asignacion = asignacionR.save(asignacion);
+    AsignacionDTO asignacionDTO = new AsignacionDTO(
+            asignacion.getId(),
+            paqueteDTO.id(),
+            necesidadID,
+            tiempo,
+            estado
+    );
+
     metricas.counter("asignaciones.creados").increment();
     return asignacionDTO;
   }
@@ -209,11 +205,8 @@ public class Fachada implements FachadaLogistica {
   }
 
   @Override
-  public void setFachadaDonadoresYEntidades(FachadaDonadoresYEntidades fachadaDonadoresYEntidades) {
-  }
+  public void setFachadaDonadoresYEntidades(FachadaDonadoresYEntidades fachadaDonadoresYEntidades) { }
 
   @Override
-  public void setFachadaDonaciones(FachadaDonaciones fachadaDonaciones) {
-
-  }
+  public void setFachadaDonaciones(FachadaDonaciones fachadaDonaciones) { }
 }

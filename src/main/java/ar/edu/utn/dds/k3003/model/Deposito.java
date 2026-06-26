@@ -8,6 +8,7 @@ import java.util.List;
 @Table(name = "depositos")
 public class Deposito {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     private String nombre;
     @Enumerated(EnumType.STRING)

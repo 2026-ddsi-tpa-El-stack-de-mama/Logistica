@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 @Table(name = "paquetes")
 public class Paquete {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     private String donacionID;
     private String productos;
