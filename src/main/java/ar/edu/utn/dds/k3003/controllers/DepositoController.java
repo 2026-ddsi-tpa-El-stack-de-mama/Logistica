@@ -26,8 +26,8 @@ public class DepositoController {
     }
 
     @DeleteMapping("/depositos/{id}")
-    public Optional<Deposito> deleteDeposito(@PathVariable String id) {
-        return depositoService.deleteDeposito(id);
+    public void deleteDeposito(@PathVariable String id) {
+        depositoService.deleteDeposito(id);
     }
 
     @GetMapping("/depositos")

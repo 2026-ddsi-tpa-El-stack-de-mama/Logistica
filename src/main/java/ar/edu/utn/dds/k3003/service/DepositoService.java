@@ -3,6 +3,7 @@ package ar.edu.utn.dds.k3003.service;
 import ar.edu.utn.dds.k3003.Fachada;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.PaqueteDTO;
 import ar.edu.utn.dds.k3003.model.Deposito;
+import ar.edu.utn.dds.k3003.model.Paquete;
 import ar.edu.utn.dds.k3003.repositories.AsignacionRepository;
 import ar.edu.utn.dds.k3003.repositories.DepositoRepository;
 import ar.edu.utn.dds.k3003.repositories.PaqueteRepository;
@@ -37,10 +38,10 @@ public class DepositoService {
         return deposito;
     }
 
-    public Optional<Deposito> deleteDeposito(String id) {
+    public String deleteDeposito(String id) {
         Optional<Deposito> deposito = depositoR.findById(id);
         depositoR.deleteById(id);
-        return deposito;
+        return "Deposito con id: " + id + " eliminado.";
     }
 
     public String postDonacion(String depositoID, PaqueteDTO paquete){
@@ -50,14 +51,13 @@ public class DepositoService {
         } catch (NoSuchElementException e) {
             throw new RuntimeException(e);
         }
-
         return paquete.id();
     }
     public String postEntrega(PaqueteDTO paquete){
-        paqueteR.findById(paquete.id()).orElseThrow(() -> new RuntimeException("Paquete no encontrado"));
+        Paquete paqueter = paqueteR.findById(paquete.id()).orElseThrow(() -> new RuntimeException("Paquete no encontrado"));
         asignacionR.findByPaqueteID(paquete.id()).orElseThrow(() -> new RuntimeException("Asignación no encontrada"));
         fachada.reportarEntrega(paquete);
-        return "Llegó el paquete " + paquete.id();
+        return "Llegó el paquete " + paqueter.getId();
     }
 
 }
