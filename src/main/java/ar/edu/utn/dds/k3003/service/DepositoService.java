@@ -39,9 +39,8 @@ public class DepositoService {
     }
 
     public String deleteDeposito(String id) {
-        Optional<Deposito> deposito = depositoR.findById(id);
         depositoR.deleteById(id);
-        return "Deposito con id: " + id + " eliminado.";
+        return "Deposito con id " + id + " eliminado.";
     }
 
     public String postDonacion(String depositoID, PaqueteDTO paquete){

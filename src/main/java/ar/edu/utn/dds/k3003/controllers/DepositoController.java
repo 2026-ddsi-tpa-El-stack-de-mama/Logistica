@@ -5,6 +5,7 @@ import ar.edu.utn.dds.k3003.model.Deposito;
 import ar.edu.utn.dds.k3003.model.Paquete;
 import ar.edu.utn.dds.k3003.service.DepositoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,8 +27,8 @@ public class DepositoController {
     }
 
     @DeleteMapping("/depositos/{id}")
-    public void deleteDeposito(@PathVariable String id) {
-        depositoService.deleteDeposito(id);
+    public ResponseEntity<String> deleteDeposito(@PathVariable String id) {
+        return ResponseEntity.ok(depositoService.deleteDeposito(id));
     }
 
     @GetMapping("/depositos")
