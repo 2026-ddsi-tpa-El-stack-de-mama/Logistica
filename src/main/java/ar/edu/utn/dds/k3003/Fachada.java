@@ -3,16 +3,15 @@ package ar.edu.utn.dds.k3003;
 import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.EstadoDonacionEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.NecesidadMaterialDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.*;
+import ar.edu.utn.dds.k3003.catedra.dtos.logistica.TipoAlgoritmoEnum;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonaciones;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaLogistica;
 import ar.edu.utn.dds.k3003.clientes.DonacionesClient;
 import ar.edu.utn.dds.k3003.clientes.DonadoresYEntidadesClient;
-import ar.edu.utn.dds.k3003.model.Asignacion;
-import ar.edu.utn.dds.k3003.model.Deposito;
-import ar.edu.utn.dds.k3003.model.EstadoAsignacionEnum;
-import ar.edu.utn.dds.k3003.model.Paquete;
+import ar.edu.utn.dds.k3003.model.*;
 import ar.edu.utn.dds.k3003.repositories.AsignacionRepository;
+import ar.edu.utn.dds.k3003.repositories.AsignacionesHistorialRepository;
 import ar.edu.utn.dds.k3003.repositories.DepositoRepository;
 import ar.edu.utn.dds.k3003.repositories.PaqueteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,15 +31,17 @@ public class Fachada implements FachadaLogistica {
   private final DepositoRepository depositoR;
   private final PaqueteRepository paqueteR;
   private final AsignacionRepository asignacionR;
+  private final AsignacionesHistorialRepository asignacionesHistorialR;
   private final MeterRegistry metricas;
 
   @Autowired
-  public Fachada(DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR, DonacionesClient donacionesClient, DonadoresYEntidadesClient donadoresYEntidadesClient, MeterRegistry metricas) {
+  public Fachada(DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR, DonacionesClient donacionesClient, DonadoresYEntidadesClient donadoresYEntidadesClient, AsignacionesHistorialRepository asignacionesHistorialR, MeterRegistry metricas) {
       this.depositoR = depositoR;
       this.paqueteR = paqueteR;
       this.asignacionR = asignacionR;
       this.donacionesClient = donacionesClient;
       this.donadoresYEntidadesClient = donadoresYEntidadesClient;
+      this.asignacionesHistorialR = asignacionesHistorialR;
       this.metricas = metricas;
   }
 
@@ -193,12 +194,27 @@ public class Fachada implements FachadaLogistica {
   @Override
   public void reportarEntrega(PaqueteDTO paqueteDTO) {
     if (paqueteDTO == null) {
-      throw new RuntimeException();
+      throw new RuntimeException("El paquete no puede tener id nulo");
     }
 
     Asignacion asignacion = asignacionR.findByPaqueteID(paqueteDTO.id()).orElseThrow(() -> new RuntimeException("No existe la asignación"));
-    asignacion.setEstado(EstadoAsignacionEnum.COMPLETADA);
+
+    AsignacionesHistorial asignacionesH = new AsignacionesHistorial(
+            null,
+            asignacion.getId(),
+            asignacion.getEstado(),
+            LocalDateTime.now()
+    );
+    asignacionesHistorialR.save(asignacionesH);
+
+    if (asignacion.getEstado() == EstadoAsignacionEnum.COMPLETADA) {
+      throw new RuntimeException("La asignación ya fue entregada");
+    }
+    else{
+      asignacion.setEstado(EstadoAsignacionEnum.COMPLETADA);
+    }
     asignacionR.save(asignacion);
+
 
     donadoresYEntidadesClient.satisfacerNecesidad(asignacion.getNecesidadID(), paqueteDTO.cantidad());
     donacionesClient.cambiarEstadoDeDonacion(paqueteDTO.donacionID(), EstadoDonacionEnum.ACEPTADA);

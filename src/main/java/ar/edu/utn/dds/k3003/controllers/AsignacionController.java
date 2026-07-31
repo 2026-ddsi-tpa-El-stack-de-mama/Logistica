@@ -1,11 +1,15 @@
 package ar.edu.utn.dds.k3003.controllers;
 
 import ar.edu.utn.dds.k3003.model.Asignacion;
+import ar.edu.utn.dds.k3003.model.AsignacionesHistorial;
+import ar.edu.utn.dds.k3003.model.Deposito;
 import ar.edu.utn.dds.k3003.service.AsignacionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -21,5 +25,10 @@ public class AsignacionController {
     public Asignacion getAsignacion(@PathVariable String id){
         Optional<Asignacion> asignacion = asignacionService.getAsignacion(id);
         return asignacion.orElse(null);
+    }
+
+    @GetMapping("/asignacionesHistorial")
+    public List<AsignacionesHistorial> getAsignacionesHistorial(){
+        return asignacionService.getAsignacionesHistorial();
     }
 }
