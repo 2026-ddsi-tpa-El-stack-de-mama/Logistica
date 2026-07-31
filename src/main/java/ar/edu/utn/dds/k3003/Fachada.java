@@ -47,29 +47,10 @@ public class Fachada implements FachadaLogistica {
 
   @Override
   public DepositoDTO agregarDeposito(DepositoDTO deposito) {
-    if (deposito.id() != null){
-      throw new RuntimeException("Depósito inexistente");
-    }
-    else{
-      Deposito dep = new Deposito(
-            null,
-            deposito.nombre(),
-            null,
-            deposito.direccion(),
-            deposito.capacidadMaxima(),
-            null
-      );
+      DepositoDTO depositoDTO = new DepositoDTO(null, null, deposito.nombre(), deposito.direccion(), deposito.capacidadMaxima(), null);
+      Deposito dep = crearDeposito(depositoDTO);
       dep = depositoR.save(dep);
-      DepositoDTO depDTO = new DepositoDTO(
-              dep.getId(),
-              null,
-              deposito.nombre(),
-              deposito.direccion(),
-              deposito.capacidadMaxima(),
-              null
-      );
-      return depDTO;
-    }
+      return new DepositoDTO(dep.getId(), dep.getAlgoritmo(), dep.getNombre(), dep.getDireccion(), dep.getCapacidadMaxima(), null);
   }
 
   @Override
@@ -103,14 +84,7 @@ public class Fachada implements FachadaLogistica {
   @Override
   public DepositoDTO gestionarDonacion(String depositoID, String donacionID, String productoID, Integer cantidad) throws NoSuchElementException {
     DepositoDTO deposito = buscarDepositoPorID(depositoID);
-    Deposito depositoPaquete = new Deposito(
-            deposito.id(),
-            deposito.nombre(),
-            deposito.algoritmo(),
-            deposito.direccion(),
-            deposito.capacidadMaxima(),
-            null
-    );
+    Deposito depositoPaquete = crearDeposito(deposito);
     Paquete paquete = new Paquete(
             null,
             donacionID,
@@ -136,9 +110,13 @@ public class Fachada implements FachadaLogistica {
     }
     if(necesidadesMaterial.isEmpty()){
       throw new RuntimeException("No hay necesidades");
+      //depositoPaquete.setStockActual((List<Paquete>) paquete);
     }
-    ejecutarMatchmaking(depositoID, paqueteDTO, necesidadesMaterial);
+    else{
+      ejecutarMatchmaking(depositoID, paqueteDTO, necesidadesMaterial);
+    }
 
+    //depositoPaquete.setCapacidadMaxima(depositoPaquete.getCapacidadMaxima() - 1);
     return deposito;
   }
 
@@ -225,4 +203,16 @@ public class Fachada implements FachadaLogistica {
 
   @Override
   public void setFachadaDonaciones(FachadaDonaciones fachadaDonaciones) { }
+
+  //Métodos auxiliares para pasar de DTO a Clase
+  public Deposito crearDeposito(DepositoDTO depositoDTO){
+    return new Deposito(
+            depositoDTO.id(),
+            depositoDTO.nombre(),
+            depositoDTO.algoritmo(),
+            depositoDTO.direccion(),
+            depositoDTO.capacidadMaxima(),
+            null
+    );
+  }
 }
