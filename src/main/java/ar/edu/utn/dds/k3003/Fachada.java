@@ -2,6 +2,7 @@ package ar.edu.utn.dds.k3003;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.EstadoDonacionEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.NecesidadMaterialDTO;
+import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.TipoNecesidadMaterialEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.*;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.TipoAlgoritmoEnum;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonaciones;
@@ -21,6 +22,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 import static java.lang.Double.compare;
 
@@ -84,7 +86,7 @@ public class Fachada implements FachadaLogistica {
   @Override
   public DepositoDTO gestionarDonacion(String depositoID, String donacionID, String productoID, Integer cantidad) throws NoSuchElementException {
     DepositoDTO deposito = buscarDepositoPorID(depositoID);
-    Deposito depositoPaquete = crearDeposito(deposito);
+    Deposito depositoPaquete = depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe el depósito"));
     Paquete paquete = new Paquete(
             null,
             donacionID,
@@ -93,30 +95,22 @@ public class Fachada implements FachadaLogistica {
             depositoPaquete
     );
     paquete = paqueteR.save(paquete);
-    PaqueteDTO paqueteDTO = new PaqueteDTO(
-            paquete.getId(),
-            donacionID,
-            productoID,
-            cantidad
-    );
+
     metricas.counter("paquetes.creados").increment();
-      System.out.println(
-              paqueteR.findById(paquete.getId())
-                      .isPresent()
-      );
+
     List<NecesidadMaterialDTO> necesidadesMaterial = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(paquete.getProductos());
-    if (paqueteDTO.cantidad() <= 0){
+    if (paquete.getCantidad() <= 0){
       throw new RuntimeException("No hay cantidad suficiente");
     }
     if(necesidadesMaterial.isEmpty()){
-      throw new RuntimeException("No hay necesidades");
-      //depositoPaquete.setStockActual((List<Paquete>) paquete);
-    }
-    else{
-      ejecutarMatchmaking(depositoID, paqueteDTO, necesidadesMaterial);
+      //throw new RuntimeException("No hay necesidades");
+      depositoPaquete.getStockActual().add(paquete);
+      depositoR.save(depositoPaquete);
+      return deposito;
     }
 
-    //depositoPaquete.setCapacidadMaxima(depositoPaquete.getCapacidadMaxima() - 1);
+    ejecutarMatchmaking(depositoID, new PaqueteDTO(paquete.getId(), donacionID, productoID, cantidad), necesidadesMaterial);
+    depositoPaquete.setCapacidadMaxima(depositoPaquete.getCapacidadMaxima() - paquete.getCantidad());
     return deposito;
   }
 
@@ -128,6 +122,7 @@ public class Fachada implements FachadaLogistica {
 
     depositoR.save(deposito);
   }
+
   @Override
   public AsignacionDTO ejecutarMatchmaking(String depositoID, PaqueteDTO paqueteDTO, List<NecesidadMaterialDTO> necesidades) {
     LocalDateTime tiempo = LocalDateTime.now();
@@ -149,24 +144,63 @@ public class Fachada implements FachadaLogistica {
               }).orElseThrow(RuntimeException::new);
     }
     String necesidadID = necesidad.id();
-    Asignacion asignacion = new Asignacion(
-            null,
-            paqueteDTO.id(),
-            necesidadID,
-            tiempo,
-            EstadoAsignacionEnum.ASIGNADA
-    );
-    asignacion = asignacionR.save(asignacion);
-    AsignacionDTO asignacionDTO = new AsignacionDTO(
-            asignacion.getId(),
-            paqueteDTO.id(),
-            necesidadID,
-            tiempo,
-            estado
-    );
 
-    metricas.counter("asignaciones.creados").increment();
-    return asignacionDTO;
+      if(Objects.equals(paqueteDTO.cantidad(), necesidad.cantidadObjetivo())){
+          Paquete paqueteIgual = new Paquete(
+                  null,
+                  paqueteDTO.donacionID(),
+                  paqueteDTO.producto(),
+                  paqueteDTO.cantidad(),
+                  depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe el depósito"))
+          );
+          paqueteR.save(paqueteIgual);
+      }
+      else if(paqueteDTO.cantidad() > necesidad.cantidadObjetivo()){
+          Paquete paqueteConSobrante = new Paquete(
+                  null,
+                  paqueteDTO.donacionID(),
+                  paqueteDTO.producto(),
+                  necesidad.cantidadObjetivo(),
+                  depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe el depósito"))
+          );
+          Paquete paqueteSinSobrante = new Paquete(
+                  null,
+                  paqueteDTO.donacionID(),
+                  paqueteDTO.producto(),
+                  paqueteDTO.cantidad() - necesidad.cantidadObjetivo(),
+                  depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe el depósito"))
+          );
+          paqueteR.save(paqueteSinSobrante);
+          paqueteR.save(paqueteConSobrante);
+          Deposito dep = depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe el depósito"));
+          dep.getStockActual().add(paqueteSinSobrante);
+          depositoR.save(dep);
+      }
+      else {
+          if (necesidad.tipo() == TipoNecesidadMaterialEnum.EXTRAORDINARIA) {
+              Paquete paqueteIgual = new Paquete(
+                      null,
+                      paqueteDTO.donacionID(),
+                      paqueteDTO.producto(),
+                      paqueteDTO.cantidad(),
+                      depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe el depósito"))
+              );
+              paqueteR.save(paqueteIgual);
+          } else {
+              necesidad = necesidades.stream().filter(n -> !n.id().equals(necesidadID) && (n.tipo() == TipoNecesidadMaterialEnum.EXTRAORDINARIA || n.cantidadObjetivo() <= paqueteDTO.cantidad()))
+                      .findFirst().orElseThrow(() -> new RuntimeException("No hay otra necesidad compatible"));
+          }
+      }
+      Asignacion asignacion = new Asignacion(
+              null,
+              paqueteDTO.id(),
+              necesidad.id(),
+              tiempo,
+              EstadoAsignacionEnum.ASIGNADA
+      );
+      asignacionR.save(asignacion);
+      metricas.counter("asignaciones.creados").increment();
+      return new AsignacionDTO(asignacion.getId(), asignacion.getPaqueteID(), asignacion.getNecesidadID(), asignacion.getFecha(), estado);
   }
 
   @Override
