@@ -94,22 +94,21 @@ public class Fachada implements FachadaLogistica {
             cantidad,
             depositoPaquete
     );
-    paquete = paqueteR.save(paquete);
-
+    Paquete paqueteGuardado = paqueteR.save(paquete);
     metricas.counter("paquetes.creados").increment();
 
-    List<NecesidadMaterialDTO> necesidadesMaterial = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(paquete.getProductos());
+    List<NecesidadMaterialDTO> necesidadesMaterial = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(paqueteGuardado.getProductos());
     if (paquete.getCantidad() <= 0){
       throw new RuntimeException("No hay cantidad suficiente");
     }
     if(necesidadesMaterial.isEmpty()){
       //throw new RuntimeException("No hay necesidades");
-      depositoPaquete.getStockActual().add(paquete);
+      depositoPaquete.getStockActual().add(paqueteGuardado);
       depositoR.save(depositoPaquete);
       return deposito;
     }
 
-    ejecutarMatchmaking(depositoID, new PaqueteDTO(paquete.getId(), donacionID, productoID, cantidad), necesidadesMaterial);
+    ejecutarMatchmaking(depositoID, new PaqueteDTO(paqueteGuardado.getId(), donacionID, productoID, cantidad), necesidadesMaterial);
     depositoPaquete.setCapacidadMaxima(depositoPaquete.getCapacidadMaxima() - paquete.getCantidad());
     return deposito;
   }
