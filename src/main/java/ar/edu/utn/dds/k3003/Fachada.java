@@ -50,7 +50,14 @@ public class Fachada implements FachadaLogistica {
   @Override
   public DepositoDTO agregarDeposito(DepositoDTO deposito) {
       DepositoDTO depositoDTO = new DepositoDTO(null, null, deposito.nombre(), deposito.direccion(), deposito.capacidadMaxima(), null);
-      Deposito dep = crearDeposito(depositoDTO);
+      Deposito dep = new Deposito(
+              depositoDTO.id(),
+              depositoDTO.nombre(),
+              depositoDTO.algoritmo(),
+              depositoDTO.direccion(),
+              depositoDTO.capacidadMaxima(),
+              null
+      );
       dep = depositoR.save(dep);
       return new DepositoDTO(dep.getId(), dep.getAlgoritmo(), dep.getNombre(), dep.getDireccion(), dep.getCapacidadMaxima(), null);
   }
@@ -58,14 +65,12 @@ public class Fachada implements FachadaLogistica {
   @Override
   public DepositoDTO buscarDepositoPorID(String depositoID) throws NoSuchElementException {
     Deposito deposito = depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe el depósito"));
-    return new DepositoDTO(
-            deposito.getId(),
-            deposito.getAlgoritmo(),
-            deposito.getNombre(),
-            deposito.getDireccion(),
-            deposito.getCapacidadMaxima(),
-            null
-    );
+    List<PaqueteDTO> stock = deposito.getStockActual().stream().map(p -> new PaqueteDTO(
+                      p.getId(),
+                      p.getDonacionID(),
+                      p.getProductos(),
+                      p.getCantidad())).toList();
+      return new DepositoDTO(deposito.getId(), deposito.getAlgoritmo(), deposito.getNombre(), deposito.getDireccion(), deposito.getCapacidadMaxima(), stock);
   }
 
   @Override
@@ -218,15 +223,5 @@ public class Fachada implements FachadaLogistica {
   @Override
   public void setFachadaDonaciones(FachadaDonaciones fachadaDonaciones) { }
 
-  //Métodos auxiliares para pasar de DTO a Clase
-  public Deposito crearDeposito(DepositoDTO depositoDTO){
-    return new Deposito(
-            depositoDTO.id(),
-            depositoDTO.nombre(),
-            depositoDTO.algoritmo(),
-            depositoDTO.direccion(),
-            depositoDTO.capacidadMaxima(),
-            null
-    );
-  }
+
 }
