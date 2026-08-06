@@ -127,6 +127,7 @@ public class Fachada implements FachadaLogistica {
     LocalDateTime tiempo = LocalDateTime.now();
     EstadoAsginacionEnum estado = EstadoAsginacionEnum.ASIGNADA;
     DepositoDTO deposito = buscarDepositoPorID(depositoID);
+    Paquete paquete = paqueteR.getReferenceById(paqueteDTO.id());
 
     NecesidadMaterialDTO necesidad;
     if (deposito.algoritmo() == TipoAlgoritmoEnum.PRIORIDAD_POR_SCORE) {
@@ -144,47 +145,27 @@ public class Fachada implements FachadaLogistica {
     }
     String necesidadID = necesidad.id();
 
-      if(Objects.equals(paqueteDTO.cantidad(), necesidad.cantidadObjetivo())){
-          Paquete paqueteIgual = new Paquete(
-                  null,
-                  paqueteDTO.donacionID(),
-                  paqueteDTO.producto(),
-                  paqueteDTO.cantidad(),
-                  depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe el depósito"))
-          );
-          paqueteR.save(paqueteIgual);
+      if(Objects.equals(paqueteDTO.cantidad(), necesidad.cantidadObjetivo())) {
+          System.out.println("Se asignó por completo el paquete");
       }
-      else if(paqueteDTO.cantidad() > necesidad.cantidadObjetivo()){
-          Paquete paqueteConSobrante = new Paquete(
-                  null,
-                  paqueteDTO.donacionID(),
-                  paqueteDTO.producto(),
-                  necesidad.cantidadObjetivo(),
-                  depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe el depósito"))
-          );
-          Paquete paqueteSinSobrante = new Paquete(
+      else if (paqueteDTO.cantidad() > necesidad.cantidadObjetivo()){
+          paquete.setCantidad(paqueteDTO.cantidad() - necesidad.cantidadObjetivo());
+          paqueteR.save(paquete);
+          Deposito depositoSobrante = depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe el depósito"));
+          Paquete paqueteSobrante = new Paquete(
                   null,
                   paqueteDTO.donacionID(),
                   paqueteDTO.producto(),
                   paqueteDTO.cantidad() - necesidad.cantidadObjetivo(),
-                  depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe el depósito"))
+                  depositoSobrante
           );
-          paqueteR.save(paqueteSinSobrante);
-          paqueteR.save(paqueteConSobrante);
-          Deposito dep = depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe el depósito"));
-          dep.getStockActual().add(paqueteSinSobrante);
-          depositoR.save(dep);
+          paqueteR.save(paqueteSobrante);
+          depositoSobrante.getStockActual().add(paqueteSobrante);
+          depositoR.save(depositoSobrante);
       }
       else {
           if (necesidad.tipo() == TipoNecesidadMaterialEnum.EXTRAORDINARIA) {
-              Paquete paqueteIgual = new Paquete(
-                      null,
-                      paqueteDTO.donacionID(),
-                      paqueteDTO.producto(),
-                      paqueteDTO.cantidad(),
-                      depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe el depósito"))
-              );
-              paqueteR.save(paqueteIgual);
+              System.out.println("Se asignó por completo el paquete");
           } else {
               necesidad = necesidades.stream().filter(n -> !n.id().equals(necesidadID) && (n.tipo() == TipoNecesidadMaterialEnum.EXTRAORDINARIA || n.cantidadObjetivo() <= paqueteDTO.cantidad()))
                       .findFirst().orElseThrow(() -> new RuntimeException("No hay otra necesidad compatible"));
