@@ -107,7 +107,6 @@ public class Fachada implements FachadaLogistica {
       throw new RuntimeException("No hay cantidad suficiente");
     }
     if(necesidadesMaterial.isEmpty()){
-      //throw new RuntimeException("No hay necesidades");
       depositoPaquete.getStockActual().add(paqueteGuardado);
       depositoR.save(depositoPaquete);
       return deposito;
