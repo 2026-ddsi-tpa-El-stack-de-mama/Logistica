@@ -156,15 +156,6 @@ public class Fachada implements FachadaLogistica {
           paquete.setCantidad(paqueteDTO.cantidad() - necesidad.cantidadObjetivo());
           paqueteR.save(paquete);
           Deposito depositoSobrante = depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe el depósito"));
-          Paquete paqueteSobrante = new Paquete(
-                  null,
-                  paqueteDTO.donacionID(),
-                  paqueteDTO.producto(),
-                  paqueteDTO.cantidad() - necesidad.cantidadObjetivo(),
-                  depositoSobrante
-          );
-          paqueteR.save(paqueteSobrante);
-          depositoSobrante.getStockActual().add(paqueteSobrante);
           depositoR.save(depositoSobrante);
       }
       else {
