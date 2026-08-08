@@ -190,11 +190,8 @@ public class Fachada implements FachadaLogistica {
 
   @Override
   public void reportarEntrega(PaqueteDTO paqueteDTO) {
-    if (paqueteDTO == null) {
-      throw new RuntimeException("El paquete no puede tener id nulo");
-    }
-
-    Asignacion asignacion = asignacionR.findByPaqueteID(paqueteDTO.id()).orElseThrow(() -> new RuntimeException("No existe la asignación"));
+    Paquete paquete = paqueteR.findById(paqueteDTO.id()).orElseThrow(() -> new RuntimeException("No existe el paquete"));
+    Asignacion asignacion = asignacionR.findByPaqueteID(paquete.getId()).orElseThrow(() -> new RuntimeException("No existe la asignación"));
 
     AsignacionesHistorial asignacionesH = new AsignacionesHistorial(
             null,
