@@ -8,7 +8,7 @@
 ---
 
 🧩 Componente Desarrollado
-- Logística https://app.swaggerhub.com/apis/utn-a74/2026-ddsi-tpa-logistica/v1
+- Logística https://app.swaggerhub.com/apis/utndisenio/Logistica-Culeddu/1.0.0
 
 ---
 

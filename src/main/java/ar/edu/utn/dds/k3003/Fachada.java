@@ -132,8 +132,10 @@ public class Fachada implements FachadaLogistica {
     EstadoAsginacionEnum estado = EstadoAsginacionEnum.ASIGNADA;
     DepositoDTO deposito = buscarDepositoPorID(depositoID);
     Paquete paquete = paqueteR.getReferenceById(paqueteDTO.id());
-
     NecesidadMaterialDTO necesidad;
+
+
+
     if (deposito.algoritmo() == TipoAlgoritmoEnum.PRIORIDAD_POR_SCORE) {
       necesidad = necesidades.stream().max((n1, n2) -> {
                 double score1 = n1.nivelDeUrgencia() / ((double) paqueteDTO.cantidad() / n1.cantidadObjetivo());
@@ -209,6 +211,6 @@ public class Fachada implements FachadaLogistica {
 
   @Override
   public void setFachadaDonaciones(FachadaDonaciones fachadaDonaciones) { }
-
+    //USAR RABITmq PARA COLAS
 
 }
