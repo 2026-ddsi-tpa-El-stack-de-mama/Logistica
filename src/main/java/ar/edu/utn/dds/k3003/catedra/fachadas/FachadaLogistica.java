@@ -3,8 +3,10 @@ package ar.edu.utn.dds.k3003.catedra.fachadas;
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.NecesidadMaterialDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 
 public interface FachadaLogistica {
 
@@ -16,7 +18,7 @@ public interface FachadaLogistica {
 
   DepositoDTO gestionarDonacion(
       String depositoID, String donacionID, String productoID, Integer cantidad)
-      throws NoSuchElementException;
+          throws NoSuchElementException, IOException, TimeoutException;
 
   void setAlgoritmoMM(String depositoID, TipoAlgoritmoEnum tipoAlgoritmo);
 

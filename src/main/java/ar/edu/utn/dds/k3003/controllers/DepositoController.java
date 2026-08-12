@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
+
 @RestController
 public class DepositoController {
     private final DepositoService depositoService;
@@ -51,4 +53,6 @@ public class DepositoController {
         return depositoService.postEntrega(paquete);
     }
 
+    @GetMapping("/stock/{productoID}")
+    public String getStock(@PathVariable String productoID){return depositoService.getStock(productoID);}
 }

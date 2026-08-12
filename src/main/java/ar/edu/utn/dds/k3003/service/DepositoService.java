@@ -9,7 +9,9 @@ import ar.edu.utn.dds.k3003.repositories.DepositoRepository;
 import ar.edu.utn.dds.k3003.repositories.PaqueteRepository;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 @Service
 public class DepositoService {
@@ -49,6 +51,10 @@ public class DepositoService {
             fachada.gestionarDonacion(depositoID, paquete.donacionID(), paquete.producto(), paquete.cantidad());
         } catch (NoSuchElementException e) {
             throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (TimeoutException e) {
+            throw new RuntimeException(e);
         }
         return paquete.id();
     }
@@ -57,6 +63,11 @@ public class DepositoService {
         asignacionR.findByPaqueteID(paquete.id()).orElseThrow(() -> new RuntimeException("Asignación no encontrada"));
         fachada.reportarEntrega(paquete);
         return "Llegó el paquete " + paqueter.getId();
+    }
+
+    public String getStock(String productoID){
+        Paquete paquete = paqueteR.findByProductos(productoID);
+        return "Stock del producto: " + productoID + " : " + paquete.getCantidad();
     }
 
 }

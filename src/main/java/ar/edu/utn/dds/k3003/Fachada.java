@@ -15,14 +15,18 @@ import ar.edu.utn.dds.k3003.repositories.AsignacionRepository;
 import ar.edu.utn.dds.k3003.repositories.AsignacionesHistorialRepository;
 import ar.edu.utn.dds.k3003.repositories.DepositoRepository;
 import ar.edu.utn.dds.k3003.repositories.PaqueteRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import io.micrometer.core.instrument.MeterRegistry;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 import static java.lang.Double.compare;
 
@@ -89,9 +93,26 @@ public class Fachada implements FachadaLogistica {
   }
 
   @Override
-  public DepositoDTO gestionarDonacion(String depositoID, String donacionID, String productoID, Integer cantidad) throws NoSuchElementException {
+  public DepositoDTO gestionarDonacion(String depositoID, String donacionID, String productoID, Integer cantidad) throws NoSuchElementException, IOException, TimeoutException {
     DepositoDTO deposito = buscarDepositoPorID(depositoID);
     Deposito depositoPaquete = depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe el depósito"));
+
+    ConnectionFactory factory = new ConnectionFactory();
+    Map<String, String> env = System.getenv();
+    factory.setHost(env.get("QUEUE_HOST"));
+    factory.setUsername(env.get("QUEUE_USERNAME"));
+    factory.setPassword(env.get("QUEUE_PASSWORD"));
+    factory.setVirtualHost(env.get("QUEUE_USERNAME"));
+
+    Connection connection = factory.newConnection();
+
+    Channel channel = connection.createChannel();
+    String queueName = env.get("QUEUE_NAME");
+
+    if(depositoPaquete.getCapacidadMaxima() < cantidad){
+        throw new RuntimeException("No hay espacio en el depósito");
+    }
+
     Paquete paquete = new Paquete(
             null,
             donacionID,
@@ -103,18 +124,31 @@ public class Fachada implements FachadaLogistica {
     metricas.counter("paquetes.creados").increment();
 
     List<NecesidadMaterialDTO> necesidadesMaterial = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(paqueteGuardado.getProductos());
-    if (paquete.getCantidad() <= 0){
-      throw new RuntimeException("No hay cantidad suficiente");
-    }
+
     if(necesidadesMaterial.isEmpty()){
       depositoPaquete.getStockActual().add(paqueteGuardado);
       depositoR.save(depositoPaquete);
       return deposito;
     }
 
+    AsignacionQueue mensaje = new AsignacionQueue(
+            paqueteGuardado.getId(),
+            depositoPaquete.getAlgoritmo()
+    );
+
+    ObjectMapper mapper = new ObjectMapper();
+
+    byte[] body = mapper.writeValueAsBytes(mensaje);
+
+    channel.basicPublish("", queueName, null, body);
     ejecutarMatchmaking(depositoID, new PaqueteDTO(paqueteGuardado.getId(), donacionID, productoID, cantidad), necesidadesMaterial);
     depositoPaquete.setCapacidadMaxima(depositoPaquete.getCapacidadMaxima() - paquete.getCantidad());
-    return deposito;
+
+    channel.close();
+    connection.close();
+
+
+      return deposito;
   }
 
   @Override
@@ -128,14 +162,13 @@ public class Fachada implements FachadaLogistica {
 
   @Override
   public AsignacionDTO ejecutarMatchmaking(String depositoID, PaqueteDTO paqueteDTO, List<NecesidadMaterialDTO> necesidades) {
-    LocalDateTime tiempo = LocalDateTime.now();
+    //LocalDateTime tiempo = LocalDateTime.now();
     EstadoAsginacionEnum estado = EstadoAsginacionEnum.ASIGNADA;
     DepositoDTO deposito = buscarDepositoPorID(depositoID);
     Paquete paquete = paqueteR.getReferenceById(paqueteDTO.id());
-    NecesidadMaterialDTO necesidad;
-
-
-
+    Asignacion asignacion = asignacionR.findByPaqueteID(paqueteDTO.id()).orElseThrow(() -> new RuntimeException("No existe la asignación"));
+    NecesidadMaterialDTO necesidad = donadoresYEntidadesClient.obtenerNecesidad(asignacion.getNecesidadID()).getBody();
+    /*
     if (deposito.algoritmo() == TipoAlgoritmoEnum.PRIORIDAD_POR_SCORE) {
       necesidad = necesidades.stream().max((n1, n2) -> {
                 double score1 = n1.nivelDeUrgencia() / ((double) paqueteDTO.cantidad() / n1.cantidadObjetivo());
@@ -148,9 +181,9 @@ public class Fachada implements FachadaLogistica {
                 int d2 = n2.cantidadObjetivo() - paqueteDTO.cantidad();
                 return compare(d1, d2);
               }).orElseThrow(RuntimeException::new);
-    }
-    String necesidadID = necesidad.id();
+    }*/
 
+    String necesidadID = necesidad.id();
       if(Objects.equals(paqueteDTO.cantidad(), necesidad.cantidadObjetivo())) {
           System.out.println("Se asignó por completo el paquete");
       }
@@ -168,14 +201,6 @@ public class Fachada implements FachadaLogistica {
                       .findFirst().orElseThrow(() -> new RuntimeException("No hay otra necesidad compatible"));
           }
       }
-      Asignacion asignacion = new Asignacion(
-              null,
-              paqueteDTO.id(),
-              necesidad.id(),
-              tiempo,
-              EstadoAsignacionEnum.ASIGNADA
-      );
-      asignacionR.save(asignacion);
       metricas.counter("asignaciones.creados").increment();
       return new AsignacionDTO(asignacion.getId(), asignacion.getPaqueteID(), asignacion.getNecesidadID(), asignacion.getFecha(), estado);
   }
@@ -211,6 +236,5 @@ public class Fachada implements FachadaLogistica {
 
   @Override
   public void setFachadaDonaciones(FachadaDonaciones fachadaDonaciones) { }
-    //USAR RABITmq PARA COLAS
 
 }
