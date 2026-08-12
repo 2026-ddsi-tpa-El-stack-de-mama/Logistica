@@ -65,9 +65,9 @@ public class DepositoService {
         return "Llegó el paquete " + paqueter.getId();
     }
 
-    public String getStock(String productoID){
+    public Integer getStock(String productoID){
         Paquete paquete = paqueteR.findByProductos(productoID);
-        return "Producto: " + productoID + ". Stock: " + paquete.getCantidad();
+        return paquete.getCantidad();
     }
 
 }
