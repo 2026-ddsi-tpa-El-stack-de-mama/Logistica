@@ -1,10 +1,9 @@
-package ar.edu.utn.dds.k3003;
+package ar.edu.utn.dds.k3003.queue;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.NecesidadMaterialDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.*;
 import ar.edu.utn.dds.k3003.clientes.DonadoresYEntidadesClient;
 import ar.edu.utn.dds.k3003.clientes.LogisticaClient;
-import ar.edu.utn.dds.k3003.model.Asignacion;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
 
@@ -18,42 +17,42 @@ import static java.lang.Double.compare;
 
 public class AsignacionWorker extends DefaultConsumer {
     private String queueName;
-    private static LogisticaClient logisticaClient;
-    private static DonadoresYEntidadesClient donadoresYEntidadesClient;
+    private LogisticaClient logisticaClient;
+    private DonadoresYEntidadesClient donadoresYEntidadesClient;
 
-    protected AsignacionWorker(Channel channel, String queueName, LogisticaClient logisticaClient, DonadoresYEntidadesClient donadoresYEntidadesClient) {
+    public AsignacionWorker(Channel channel, String queueName, LogisticaClient logisticaClient, DonadoresYEntidadesClient donadoresYEntidadesClient) {
         super(channel);
         this.queueName = queueName;
         this.logisticaClient = logisticaClient;
         this.donadoresYEntidadesClient = donadoresYEntidadesClient;
     }
 
-    private void init() throws IOException {
+    public void init() throws IOException {
 // Declarar la cola desde la cual consumir mensajes
         this.getChannel().queueDeclare(this.queueName, false, false, false, null);
 // Consumir mensajes de la cola
         this.getChannel().basicConsume(this.queueName, false, this);
-    }
+    };
 
     @Override
     public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
-        //Confirmar la recepción del mensaje a la mensajeria
-        this.getChannel().basicAck(envelope.getDeliveryTag(), false);
-        //Leer el mensaje
-        String json = new String(body, StandardCharsets.UTF_8);
-        ObjectMapper mapper = new ObjectMapper();
-
-        AsignacionQueue mensaje = mapper.readValue(json, AsignacionQueue.class);
-        String paqueteId = mensaje.paqueteID();
-        TipoAlgoritmoEnum algoritmo = mensaje.algoritmo();
-
-        System.out.println("Paquete recibido: " + paqueteId);
-        System.out.println("Algoritmo: " + algoritmo);
-
         try {
+            //Leer el mensaje
+            String json = new String(body, StandardCharsets.UTF_8);
+            ObjectMapper mapper = new ObjectMapper();
+
+            AsignacionQueue mensaje = mapper.readValue(json, AsignacionQueue.class);
+            String paqueteId = mensaje.paqueteID();
+            TipoAlgoritmoEnum algoritmo = mensaje.algoritmo();
+
+            System.out.println("Paquete recibido: " + paqueteId);
+            System.out.println("Algoritmo: " + algoritmo);
+
+            //Sigue algoritmo
+
             PaqueteDTO paquete = logisticaClient.buscarPaquete(paqueteId);
             List<NecesidadMaterialDTO> necesidades = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(paquete.producto());
-            AsignacionDTO asignacion = ejecutarMatchmaking(paquete, necesidades, algoritmo);
+            ejecutarMatchmaking(paquete, necesidades, algoritmo);
             if (paquete.cantidad() <= 0){
                 throw new RuntimeException("No hay cantidad suficiente");
             }
@@ -63,6 +62,7 @@ public class AsignacionWorker extends DefaultConsumer {
 
         } catch (Exception e) {
             e.printStackTrace();
+
             getChannel().basicNack(
                     envelope.getDeliveryTag(),
                     false,
@@ -99,23 +99,6 @@ public class AsignacionWorker extends DefaultConsumer {
 
         logisticaClient.crearAsignacion(asignacion);
         return asignacion;
-    }
-
-    public static void main(String[] args) throws Exception {
-// Establecer la conexión con CloudAMQP
-        Map<String, String> env = System.getenv();
-        ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost(env.get("QUEUE_HOST"));
-        factory.setUsername(env.get("QUEUE_USERNAME"));
-        factory.setPassword(env.get("QUEUE_PASSWORD"));
-// En el plan más barato, el VHOST == USER
-        factory.setVirtualHost(env.get("QUEUE_USERNAME"));
-        String queueName = env.get("QUEUE_NAME");
-        Connection connection = factory.newConnection();
-        Channel channel = connection.createChannel();
-
-        AsignacionWorker worker = new AsignacionWorker(channel,queueName,logisticaClient ,donadoresYEntidadesClient);
-        worker.init();
     }
 
 }
