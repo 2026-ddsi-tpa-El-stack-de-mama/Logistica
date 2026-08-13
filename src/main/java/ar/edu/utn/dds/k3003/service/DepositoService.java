@@ -58,6 +58,7 @@ public class DepositoService {
         }
         return paquete.id();
     }
+
     public String postEntrega(PaqueteDTO paquete){
         Paquete paqueter = paqueteR.findById(paquete.id()).orElseThrow(() -> new RuntimeException("Paquete no encontrado"));
         asignacionR.findByPaqueteID(paquete.id()).orElseThrow(() -> new RuntimeException("Asignación no encontrada"));
@@ -67,6 +68,12 @@ public class DepositoService {
 
     public Integer getStock(String productoID){
         Paquete paquete = paqueteR.findByProductos(productoID);
+        return paquete.getCantidad();
+    }
+
+    public Integer postStock(String productoID, Integer cantidad){
+        Paquete paquete = paqueteR.findByProductos(productoID);
+        paquete.setCantidad(paquete.getCantidad() - cantidad);
         return paquete.getCantidad();
     }
 
