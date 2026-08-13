@@ -73,7 +73,15 @@ public class DepositoService {
 
     public Integer postStock(String productoID, Integer cantidad){
         Paquete paquete = paqueteR.findByProductos(productoID);
-        paquete.setCantidad(paquete.getCantidad() - cantidad);
+        int stock;
+        if (paquete.getCantidad() - cantidad > 0){
+            stock = paquete.getCantidad() - cantidad;
+        }
+        else{
+            stock = 0;
+        }
+        paquete.setCantidad(stock);
+        paqueteR.save(paquete);
         return paquete.getCantidad();
     }
 
