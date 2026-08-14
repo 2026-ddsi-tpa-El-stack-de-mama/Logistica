@@ -46,14 +46,12 @@ public class DepositoService {
     }
 
     public String postDonacion(String depositoID, PaqueteDTO paquete){
+        if (paqueteR.findById(paquete.id()).isPresent()){
+            throw new RuntimeException("Este paquete ya está asignado");
+        }
         try{
-            depositoR.findById(depositoID);
             fachada.gestionarDonacion(depositoID, paquete.donacionID(), paquete.producto(), paquete.cantidad());
-        } catch (NoSuchElementException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (TimeoutException e) {
+        } catch (NoSuchElementException | IOException | TimeoutException e) {
             throw new RuntimeException(e);
         }
         return paquete.id();
@@ -73,13 +71,7 @@ public class DepositoService {
 
     public Integer postStock(String productoID, Integer cantidad){
         Paquete paquete = paqueteR.findByProductos(productoID);
-        int stock;
-        if (paquete.getCantidad() - cantidad > 0){
-            stock = paquete.getCantidad() - cantidad;
-        }
-        else{
-            stock = 0;
-        }
+        int stock = Math.max(paquete.getCantidad() - cantidad, 0);
         paquete.setCantidad(stock);
         paqueteR.save(paquete);
         return paquete.getCantidad();
