@@ -9,6 +9,7 @@ import ar.edu.utn.dds.k3003.repositories.AsignacionesHistorialRepository;
 import ar.edu.utn.dds.k3003.repositories.PaqueteRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,4 +54,19 @@ public class AsignacionService {
         );
         return asignacion;
     }
+
+    public Asignacion postAsignacionesDirecta(String paqueteID, String necesidadID){
+        Asignacion asignacion = new Asignacion(
+                null,
+                paqueteID,
+                necesidadID,
+                LocalDateTime.now(),
+                EstadoAsignacionEnum.ASIGNADA,
+                true
+        );
+        asignacionR.save(asignacion);
+        return asignacion;
+    }
+
+    public List<Asignacion> getAsignaciones(){return asignacionR.findAll();}
 }
