@@ -2,6 +2,7 @@ package ar.edu.utn.dds.k3003.controllers;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.AsignacionDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.PaqueteDTO;
+import ar.edu.utn.dds.k3003.dtosPropios.AsignacionDirecta;
 import ar.edu.utn.dds.k3003.model.Asignacion;
 import ar.edu.utn.dds.k3003.model.AsignacionesHistorial;
 import ar.edu.utn.dds.k3003.model.Deposito;
@@ -44,8 +45,8 @@ public class AsignacionController {
     }
 
     @PostMapping("/asignacionesDirecta")
-    public Asignacion postAsignacionesDirecta(@RequestBody String paqueteID, @RequestBody String necesidadID) {
-        return asignacionService.postAsignacionesDirecta(paqueteID, necesidadID);
+    public Asignacion postAsignacionesDirecta(@RequestBody AsignacionDirecta asignacionDirecta) {
+        return asignacionService.postAsignacionesDirecta(asignacionDirecta);
     }
 
     @GetMapping("/asignaciones")

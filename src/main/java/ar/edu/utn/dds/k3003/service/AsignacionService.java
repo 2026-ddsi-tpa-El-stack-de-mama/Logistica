@@ -3,6 +3,7 @@ package ar.edu.utn.dds.k3003.service;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.AsignacionDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.EstadoAsginacionEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.PaqueteDTO;
+import ar.edu.utn.dds.k3003.dtosPropios.AsignacionDirecta;
 import ar.edu.utn.dds.k3003.model.*;
 import ar.edu.utn.dds.k3003.repositories.AsignacionRepository;
 import ar.edu.utn.dds.k3003.repositories.AsignacionesHistorialRepository;
@@ -55,17 +56,17 @@ public class AsignacionService {
         return asignacion;
     }
 
-    public Asignacion postAsignacionesDirecta(String paqueteID, String necesidadID){
+    public Asignacion postAsignacionesDirecta(AsignacionDirecta infoAsignacion){
         Asignacion asignacion = new Asignacion(
                 null,
-                paqueteID,
-                necesidadID,
+                infoAsignacion.paqueteID(),
+                infoAsignacion.necesidadID(),
                 LocalDateTime.now(),
                 EstadoAsignacionEnum.ASIGNADA,
                 true
         );
-        asignacionR.save(asignacion);
-        return asignacion;
+        Asignacion asignacionMuestra = asignacionR.save(asignacion);
+        return asignacionMuestra;
     }
 
     public List<Asignacion> getAsignaciones(){return asignacionR.findAll();}
