@@ -15,13 +15,15 @@ public class Asignacion {
     private LocalDateTime fecha;
     @Enumerated(EnumType.STRING)
     private EstadoAsignacionEnum estado;
+    private Boolean asignacionDirecta;
 
-    public Asignacion(String id, String paqueteID, String necesidadID, LocalDateTime fecha, EstadoAsignacionEnum estado) {
+    public Asignacion(String id, String paqueteID, String necesidadID, LocalDateTime fecha, EstadoAsignacionEnum estado, Boolean asignacionDirecta) {
         this.id = id;
         this.paqueteID = paqueteID;
         this.necesidadID = necesidadID;
         this.fecha = fecha;
         this.estado = estado;
+        this.asignacionDirecta = asignacionDirecta;
     }
 
     protected Asignacion() {
@@ -53,7 +55,6 @@ public class Asignacion {
     public LocalDateTime getFecha() {
         return fecha;
     }
-
     public void setFecha(LocalDateTime fecha) {
         this.fecha = fecha;
     }
@@ -64,4 +65,12 @@ public class Asignacion {
     public void setEstado(EstadoAsignacionEnum estado) {
         this.estado = estado;
     }
+    //Asignacion directa
+    public Boolean getAsignacionDirecta() {
+        return asignacionDirecta;
+    }
+    public void setAsignacionDirecta(Boolean asignacionDirecta) {
+        this.asignacionDirecta = asignacionDirecta;
+    }
+
 }

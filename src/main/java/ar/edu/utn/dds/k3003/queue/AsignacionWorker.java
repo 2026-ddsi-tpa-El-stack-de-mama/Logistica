@@ -4,6 +4,7 @@ import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.NecesidadMaterialDT
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.*;
 import ar.edu.utn.dds.k3003.clientes.DonadoresYEntidadesClient;
 import ar.edu.utn.dds.k3003.clientes.LogisticaClient;
+import ar.edu.utn.dds.k3003.model.Paquete;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
 
@@ -11,7 +12,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
 import static java.lang.Double.compare;
 
@@ -50,10 +51,16 @@ public class AsignacionWorker extends DefaultConsumer {
 
             //Sigue algoritmo
 
-            PaqueteDTO paquete = logisticaClient.buscarPaquete(paqueteId);
-            List<NecesidadMaterialDTO> necesidades = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(paquete.producto());
-            ejecutarMatchmaking(paquete, necesidades, algoritmo);
-            if (paquete.cantidad() <= 0){
+            Optional<Paquete> paquete = logisticaClient.buscarPaquete(paqueteId);
+            PaqueteDTO paqueteDTO = new PaqueteDTO(
+                    paquete.get().getId(),
+                    paquete.get().getDonacionID(),
+                    paquete.get().getProductos(),
+                    paquete.get().getCantidad()
+            );
+            List<NecesidadMaterialDTO> necesidades = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(paqueteDTO.producto());
+            ejecutarMatchmaking(paqueteDTO, necesidades, algoritmo);
+            if (paqueteDTO.cantidad() <= 0){
                 throw new RuntimeException("No hay cantidad suficiente");
             }
 

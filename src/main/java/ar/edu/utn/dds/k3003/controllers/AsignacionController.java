@@ -1,13 +1,14 @@
 package ar.edu.utn.dds.k3003.controllers;
 
+import ar.edu.utn.dds.k3003.catedra.dtos.logistica.AsignacionDTO;
+import ar.edu.utn.dds.k3003.catedra.dtos.logistica.PaqueteDTO;
 import ar.edu.utn.dds.k3003.model.Asignacion;
 import ar.edu.utn.dds.k3003.model.AsignacionesHistorial;
 import ar.edu.utn.dds.k3003.model.Deposito;
+import ar.edu.utn.dds.k3003.model.Paquete;
 import ar.edu.utn.dds.k3003.service.AsignacionService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,5 +31,15 @@ public class AsignacionController {
     @GetMapping("/asignacionesHistorial")
     public List<AsignacionesHistorial> getAsignacionesHistorial(){
         return asignacionService.getAsignacionesHistorial();
+    }
+
+    @GetMapping("/paquetes/{id}")
+    public Optional<Paquete> buscarPaquete(@PathVariable("id") String id){
+        return asignacionService.getPaquete(id);
+    }
+
+    @PostMapping("/asignaciones")
+    public Asignacion crearAsignacion(@RequestBody AsignacionDTO asignacion){
+        return asignacionService.postAsignacion(asignacion);
     }
 }

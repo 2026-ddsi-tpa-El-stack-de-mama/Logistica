@@ -147,7 +147,7 @@ public class Fachada implements FachadaLogistica {
     connection.close();
 
 
-      return deposito;
+    return deposito;
   }
 
   @Override
@@ -200,6 +200,7 @@ public class Fachada implements FachadaLogistica {
                       .findFirst().orElseThrow(() -> new RuntimeException("No hay otra necesidad compatible"));
           }
       }
+      asignacionR.save(asignacion);
       metricas.counter("asignaciones.creados").increment();
       return new AsignacionDTO(asignacion.getId(), asignacion.getPaqueteID(), asignacion.getNecesidadID(), asignacion.getFecha(), estado);
   }
