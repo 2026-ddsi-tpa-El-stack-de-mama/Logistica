@@ -64,7 +64,6 @@ public class AsignacionWorker extends DefaultConsumer {
                 throw new RuntimeException("No hay cantidad suficiente");
             }
 
-
             getChannel().basicAck(envelope.getDeliveryTag(), false);
 
         } catch (Exception e) {

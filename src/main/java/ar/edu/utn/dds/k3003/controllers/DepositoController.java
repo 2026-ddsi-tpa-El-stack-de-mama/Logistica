@@ -54,7 +54,7 @@ public class DepositoController {
     }
 
     @GetMapping("/stock/{productoID}")
-    public Integer getStock(@PathVariable String productoID){return depositoService.getStock(productoID);}
+    public String getStock(@PathVariable String productoID){return depositoService.getStock(productoID);}
 
     @PostMapping("/stock/{productoID}")
     public Integer postStock(@PathVariable String productoID, @RequestBody Integer cantidad){
