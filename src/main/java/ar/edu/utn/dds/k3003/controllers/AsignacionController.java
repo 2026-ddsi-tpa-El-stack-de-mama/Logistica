@@ -42,9 +42,9 @@ public class AsignacionController {
     public Asignacion crearAsignacion(@RequestBody AsignacionDTO asignacion){
         return asignacionService.postAsignacion(asignacion);
     }
-
+    /*
     @GetMapping("/asignaciones")
     public List<Asignacion> getAsignacionesHistorial(){
         return asignacionService.getAsignacionesHistorial();
-    }
+    }*/
 }
