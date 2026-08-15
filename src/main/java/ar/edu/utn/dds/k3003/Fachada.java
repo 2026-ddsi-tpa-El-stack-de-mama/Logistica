@@ -140,8 +140,8 @@ public class Fachada implements FachadaLogistica {
     byte[] body = mapper.writeValueAsBytes(mensaje);
 
     channel.basicPublish("", queueName, null, body);
-    ejecutarMatchmaking(depositoID, new PaqueteDTO(paqueteGuardado.getId(), donacionID, productoID, cantidad), necesidadesMaterial);
-    depositoPaquete.setCapacidadMaxima(depositoPaquete.getCapacidadMaxima() - paquete.getCantidad());
+    //ejecutarMatchmaking(depositoID, new PaqueteDTO(paqueteGuardado.getId(), donacionID, productoID, cantidad), necesidadesMaterial);
+    //depositoPaquete.setCapacidadMaxima(depositoPaquete.getCapacidadMaxima() - paquete.getCantidad());
 
     channel.close();
     connection.close();
@@ -163,7 +163,7 @@ public class Fachada implements FachadaLogistica {
   public AsignacionDTO ejecutarMatchmaking(String depositoID, PaqueteDTO paqueteDTO, List<NecesidadMaterialDTO> necesidades) {
     //LocalDateTime tiempo = LocalDateTime.now();
     EstadoAsginacionEnum estado = EstadoAsginacionEnum.ASIGNADA;
-    DepositoDTO deposito = buscarDepositoPorID(depositoID);
+    //DepositoDTO deposito = buscarDepositoPorID(depositoID);
     Paquete paquete = paqueteR.getReferenceById(paqueteDTO.id());
     Asignacion asignacion = asignacionR.findByPaqueteID(paqueteDTO.id()).orElseThrow(() -> new RuntimeException("No existe la asignación"));
     NecesidadMaterialDTO necesidad = donadoresYEntidadesClient.obtenerNecesidad(asignacion.getNecesidadID()).getBody();

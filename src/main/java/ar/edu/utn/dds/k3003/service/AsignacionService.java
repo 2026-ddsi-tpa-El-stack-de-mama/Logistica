@@ -1,8 +1,11 @@
 package ar.edu.utn.dds.k3003.service;
 
+import ar.edu.utn.dds.k3003.Fachada;
+import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.NecesidadMaterialDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.AsignacionDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.EstadoAsginacionEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.PaqueteDTO;
+import ar.edu.utn.dds.k3003.clientes.DonadoresYEntidadesClient;
 import ar.edu.utn.dds.k3003.dtosPropios.AsignacionDirecta;
 import ar.edu.utn.dds.k3003.model.*;
 import ar.edu.utn.dds.k3003.repositories.AsignacionRepository;
@@ -16,11 +19,15 @@ import java.util.Optional;
 
 @Service
 public class AsignacionService {
+    private final Fachada fachada;
+    private final DonadoresYEntidadesClient donadoresYEntidadesClient;
     private final AsignacionRepository asignacionR;
     private final AsignacionesHistorialRepository asignacionesHistorialR;
     private final PaqueteRepository paqueteR;
 
-    public AsignacionService(AsignacionRepository asignacionR, AsignacionesHistorialRepository asignacionesHistorialR, PaqueteRepository paqueteR){
+    public AsignacionService(Fachada fachada, DonadoresYEntidadesClient donadoresYEntidadesClient, AsignacionRepository asignacionR, AsignacionesHistorialRepository asignacionesHistorialR, PaqueteRepository paqueteR){
+        this.fachada = fachada;
+        this.donadoresYEntidadesClient = donadoresYEntidadesClient;
         this.asignacionR = asignacionR;
         this.asignacionesHistorialR = asignacionesHistorialR;
         this.paqueteR = paqueteR;
@@ -37,23 +44,32 @@ public class AsignacionService {
         return paqueteR.findById(id);
     }
 
-    public Asignacion postAsignacion(AsignacionDTO asignacionDTO){
-        EstadoAsignacionEnum estado;
-        if (asignacionDTO.estado() == EstadoAsginacionEnum.ASIGNADA){
-            estado = EstadoAsignacionEnum.ASIGNADA;
-        }
-        else{
-            estado = EstadoAsignacionEnum.COMPLETADA;
-        }
+    public AsignacionDTO postAsignacion(AsignacionDirecta decision) {
+        Paquete paquete = paqueteR.findById(decision.paqueteID()).orElseThrow(() -> new RuntimeException("No existe el paquete"));
+
         Asignacion asignacion = new Asignacion(
-            asignacionDTO.id(),
-            asignacionDTO.paqueteID(),
-            asignacionDTO.necesidadID(),
-            asignacionDTO.fecha(),
-            estado,
-            false
+                null,
+                paquete.getId(),
+                decision.necesidadID(),
+                LocalDateTime.now(),
+                EstadoAsignacionEnum.ASIGNADA,
+                false
         );
-        return asignacion;
+
+        asignacionR.save(asignacion);
+
+        PaqueteDTO paqueteDTO = new PaqueteDTO(
+                paquete.getId(),
+                paquete.getDonacionID(),
+                paquete.getProductos(),
+                paquete.getCantidad()
+        );
+
+        String depositoID = paquete.getDeposito().getId();
+
+        List<NecesidadMaterialDTO> necesidades = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(paquete.getProductos());
+
+        return fachada.ejecutarMatchmaking(depositoID, paqueteDTO, necesidades);
     }
 
     public Asignacion postAsignacionesDirecta(AsignacionDirecta infoAsignacion){

@@ -40,8 +40,8 @@ public class AsignacionController {
     }
 
     @PostMapping("/asignaciones")
-    public Asignacion crearAsignacion(@RequestBody AsignacionDTO asignacion){
-        return asignacionService.postAsignacion(asignacion);
+    public AsignacionDTO crearAsignacion(@RequestBody AsignacionDirecta asignacionDirecta){
+        return asignacionService.postAsignacion(asignacionDirecta);
     }
 
     @PostMapping("/asignacionesDirecta")

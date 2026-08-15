@@ -4,6 +4,7 @@ import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.NecesidadMaterialDT
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.*;
 import ar.edu.utn.dds.k3003.clientes.DonadoresYEntidadesClient;
 import ar.edu.utn.dds.k3003.clientes.LogisticaClient;
+import ar.edu.utn.dds.k3003.dtosPropios.AsignacionDirecta;
 import ar.edu.utn.dds.k3003.model.Paquete;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
@@ -77,7 +78,7 @@ public class AsignacionWorker extends DefaultConsumer {
         }
     }
 
-    private AsignacionDTO ejecutarMatchmaking(PaqueteDTO paquete, List<NecesidadMaterialDTO> necesidades, TipoAlgoritmoEnum algoritmo) {
+    private AsignacionDirecta ejecutarMatchmaking(PaqueteDTO paquete, List<NecesidadMaterialDTO> necesidades, TipoAlgoritmoEnum algoritmo) {
         LocalDateTime tiempo = LocalDateTime.now();
         EstadoAsginacionEnum estado = EstadoAsginacionEnum.ASIGNADA;
 
@@ -95,16 +96,13 @@ public class AsignacionWorker extends DefaultConsumer {
                 return compare(d1, d2);
             }).orElseThrow(RuntimeException::new);
         }
-        AsignacionDTO asignacion = new AsignacionDTO(
-                null,
-                paquete.id(),
-                necesidad.id(),
-                LocalDateTime.now(),
-                EstadoAsginacionEnum.ASIGNADA
-        );
 
-        logisticaClient.crearAsignacion(asignacion);
-        return asignacion;
+        AsignacionDirecta asignacionDirecta = new AsignacionDirecta(
+                paquete.id(),
+                necesidad.id()
+        );
+        logisticaClient.crearAsignacion(asignacionDirecta);
+        return asignacionDirecta;
     }
 
 }
