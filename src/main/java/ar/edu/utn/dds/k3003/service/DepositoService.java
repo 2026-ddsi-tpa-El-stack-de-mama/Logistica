@@ -46,9 +46,6 @@ public class DepositoService {
     }
 
     public String postDonacion(String depositoID, PaqueteDTO paquete){
-        if (paqueteR.findById(paquete.id()).isPresent()){
-            throw new RuntimeException("Este paquete ya está asignado");
-        }
         try{
             fachada.gestionarDonacion(depositoID, paquete.donacionID(), paquete.producto(), paquete.cantidad());
         } catch (NoSuchElementException | IOException | TimeoutException e) {
