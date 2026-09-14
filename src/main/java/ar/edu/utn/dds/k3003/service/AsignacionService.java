@@ -14,6 +14,7 @@ import ar.edu.utn.dds.k3003.repositories.PaqueteRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,7 +52,7 @@ public class AsignacionService {
                 null,
                 paquete.getId(),
                 decision.necesidadID(),
-                LocalDateTime.now(),
+                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires")),
                 EstadoAsignacionEnum.ASIGNADA,
                 false
         );
@@ -77,7 +78,7 @@ public class AsignacionService {
                 null,
                 infoAsignacion.paqueteID(),
                 infoAsignacion.necesidadID(),
-                LocalDateTime.now(),
+                LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires")),
                 EstadoAsignacionEnum.ASIGNADA,
                 true
         );

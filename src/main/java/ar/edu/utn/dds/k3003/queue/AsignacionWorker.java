@@ -12,6 +12,7 @@ import com.rabbitmq.client.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -79,7 +80,7 @@ public class AsignacionWorker extends DefaultConsumer {
     }
 
     private AsignacionDirecta ejecutarMatchmaking(PaqueteDTO paquete, List<NecesidadMaterialDTO> necesidades, TipoAlgoritmoEnum algoritmo) {
-        LocalDateTime tiempo = LocalDateTime.now();
+        LocalDateTime tiempo = LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"));
         EstadoAsginacionEnum estado = EstadoAsginacionEnum.ASIGNADA;
 
         NecesidadMaterialDTO necesidad;

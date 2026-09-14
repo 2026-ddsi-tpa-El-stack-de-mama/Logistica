@@ -26,8 +26,16 @@ import io.micrometer.core.instrument.MeterRegistry;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
+
+/*
+- Mejorar lo de capacidad máxima.
+- Ver del bot de telegram para crear necesidad.
+- Mejorar datadog
+* */
+
 
 @Service
 public class Fachada implements FachadaLogistica {
@@ -129,7 +137,7 @@ public class Fachada implements FachadaLogistica {
       depositoR.save(depositoPaquete);
       return deposito;
     }
-
+    depositoPaquete.setCapacidadMaxima(depositoPaquete.getCapacidadMaxima() - paquete.getCantidad());
     AsignacionQueue mensaje = new AsignacionQueue(
             paqueteGuardado.getId(),
             depositoPaquete.getAlgoritmo()
@@ -140,8 +148,7 @@ public class Fachada implements FachadaLogistica {
     byte[] body = mapper.writeValueAsBytes(mensaje);
 
     channel.basicPublish("", queueName, null, body);
-    //ejecutarMatchmaking(depositoID, new PaqueteDTO(paqueteGuardado.getId(), donacionID, productoID, cantidad), necesidadesMaterial);
-    //depositoPaquete.setCapacidadMaxima(depositoPaquete.getCapacidadMaxima() - paquete.getCantidad());
+
 
     channel.close();
     connection.close();
@@ -163,25 +170,9 @@ public class Fachada implements FachadaLogistica {
   public AsignacionDTO ejecutarMatchmaking(String depositoID, PaqueteDTO paqueteDTO, List<NecesidadMaterialDTO> necesidades) {
     //LocalDateTime tiempo = LocalDateTime.now();
     EstadoAsginacionEnum estado = EstadoAsginacionEnum.ASIGNADA;
-    //DepositoDTO deposito = buscarDepositoPorID(depositoID);
     Paquete paquete = paqueteR.getReferenceById(paqueteDTO.id());
     Asignacion asignacion = asignacionR.findByPaqueteID(paqueteDTO.id()).orElseThrow(() -> new RuntimeException("No existe la asignación"));
     NecesidadMaterialDTO necesidad = donadoresYEntidadesClient.obtenerNecesidad(asignacion.getNecesidadID()).getBody();
-    /*
-    if (deposito.algoritmo() == TipoAlgoritmoEnum.PRIORIDAD_POR_SCORE) {
-      necesidad = necesidades.stream().max((n1, n2) -> {
-                double score1 = n1.nivelDeUrgencia() / ((double) paqueteDTO.cantidad() / n1.cantidadObjetivo());
-                double score2 = n2.nivelDeUrgencia() / ((double) paqueteDTO.cantidad() / n2.cantidadObjetivo());
-                return compare(score1, score2);
-              }).orElseThrow(RuntimeException::new);
-    } else {
-      necesidad = necesidades.stream().max((n1, n2) -> {
-                int d1 = n1.cantidadObjetivo() - paqueteDTO.cantidad();
-                int d2 = n2.cantidadObjetivo() - paqueteDTO.cantidad();
-                return compare(d1, d2);
-              }).orElseThrow(RuntimeException::new);
-    }*/
-
     String necesidadID = necesidad.id();
       if(Objects.equals(paqueteDTO.cantidad(), necesidad.cantidadObjetivo())) {
           System.out.println("Se asignó por completo el paquete");
@@ -214,7 +205,7 @@ public class Fachada implements FachadaLogistica {
             null,
             asignacion.getId(),
             asignacion.getEstado(),
-            LocalDateTime.now()
+            LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
     );
     asignacionesHistorialR.save(asignacionesH);
 
