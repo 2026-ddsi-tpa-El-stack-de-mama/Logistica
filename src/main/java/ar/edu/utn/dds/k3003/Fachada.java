@@ -34,6 +34,7 @@ import java.util.concurrent.TimeoutException;
 - Mejorar lo de capacidad máxima.
 - Ver del bot de telegram para crear necesidad.
 - Mejorar datadog
+- Mejorar getStock
 * */
 
 

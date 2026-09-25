@@ -62,12 +62,16 @@ public class DepositoService {
     }
 
     public String getStock(String productoID){
-        Paquete paquete = paqueteR.findByProductos(productoID);
-        return "Cantidad: " + paquete.getCantidad() + ". Paquete: " + paquete.getId();
+        List<Paquete> paquete = paqueteR.findByProductos(productoID);
+        String stocks = "";
+        for (int i = 0; i < paquete.toArray().length; i++){
+            stocks += "Cantidad: " + paquete.get(i).getCantidad() + ". Paquete: " + paquete.get(i).getId() + "\n";
+        }
+        return stocks;
     }
 
     public Integer postStock(String productoID, Integer cantidad){
-        Paquete paquete = paqueteR.findByProductos(productoID);
+        Paquete paquete = (Paquete) paqueteR.findByProductos(productoID);
         int stock = Math.max(paquete.getCantidad() - cantidad, 0);
         paquete.setCantidad(stock);
         paqueteR.save(paquete);
