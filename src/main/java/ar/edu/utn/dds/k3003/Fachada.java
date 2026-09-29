@@ -32,9 +32,9 @@ import java.util.concurrent.TimeoutException;
 
 /*
 - Mejorar lo de capacidad máxima.
-- Ver del bot de telegram para crear necesidad.
-- Mejorar datadog
-- Mejorar getStock
+- Ver del bot de telegram para crear necesidad. Listo
+- Mejorar datadog Listo
+- Mejorar getStock Listo
 * */
 
 
@@ -150,10 +150,9 @@ public class Fachada implements FachadaLogistica {
 
     channel.basicPublish("", queueName, null, body);
 
-
+    metricas.counter("entrada.pila").increment();
     channel.close();
     connection.close();
-
 
     return deposito;
   }
@@ -218,9 +217,10 @@ public class Fachada implements FachadaLogistica {
     }
     asignacionR.save(asignacion);
 
-
     donadoresYEntidadesClient.satisfacerNecesidad(asignacion.getNecesidadID(), paqueteDTO.cantidad());
     donacionesClient.cambiarEstadoDeDonacion(paqueteDTO.donacionID(), EstadoDonacionEnum.ACEPTADA);
+
+    metricas.counter("entrega").increment();
   }
 
   @Override
