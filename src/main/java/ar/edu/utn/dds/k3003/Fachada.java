@@ -130,7 +130,7 @@ public class Fachada implements FachadaLogistica {
     );
     Paquete paqueteGuardado = paqueteR.save(paquete);
     metricas.counter("paquetes.creados").increment();
-
+    metricas.counter("entrada.pila").increment();
     List<NecesidadMaterialDTO> necesidadesMaterial = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(paqueteGuardado.getProductos());
 
     if(necesidadesMaterial.isEmpty()){
@@ -150,7 +150,7 @@ public class Fachada implements FachadaLogistica {
 
     channel.basicPublish("", queueName, null, body);
 
-    metricas.counter("entrada.pila").increment();
+
     channel.close();
     connection.close();
 
