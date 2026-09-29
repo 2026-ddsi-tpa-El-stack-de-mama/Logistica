@@ -3,7 +3,6 @@ package ar.edu.utn.dds.k3003.service;
 import ar.edu.utn.dds.k3003.Fachada;
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.NecesidadMaterialDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.AsignacionDTO;
-import ar.edu.utn.dds.k3003.catedra.dtos.logistica.EstadoAsginacionEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.PaqueteDTO;
 import ar.edu.utn.dds.k3003.clientes.DonadoresYEntidadesClient;
 import ar.edu.utn.dds.k3003.dtosPropios.AsignacionDirecta;
@@ -41,8 +40,9 @@ public class AsignacionService {
         return asignacionesHistorialR.findAll();
     }
 
-    public Optional<Paquete> getPaquete(String id){
-        return paqueteR.findById(id);
+    public Optional<PaqueteDTO> getPaquete(String id){
+        Optional<Paquete> paquete = paqueteR.findById(id);
+        return Optional.of(new PaqueteDTO(paquete.get().getId(), paquete.get().getDonacionID(), paquete.get().getProductos(), paquete.get().getCantidad()));
     }
 
     public AsignacionDTO postAsignacion(AsignacionDirecta decision) {
@@ -82,8 +82,7 @@ public class AsignacionService {
                 EstadoAsignacionEnum.ASIGNADA,
                 true
         );
-        Asignacion asignacionMuestra = asignacionR.save(asignacion);
-        return asignacionMuestra;
+        return asignacionR.save(asignacion);
     }
 
     public List<Asignacion> getAsignaciones(){return asignacionR.findAll();}

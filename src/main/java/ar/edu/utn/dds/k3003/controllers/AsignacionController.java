@@ -35,7 +35,7 @@ public class AsignacionController {
     }
 
     @GetMapping("/paquetes/{id}")
-    public Optional<Paquete> buscarPaquete(@PathVariable("id") String id){
+    public Optional<PaqueteDTO> buscarPaquete(@PathVariable("id") String id){
         return asignacionService.getPaquete(id);
     }
 
