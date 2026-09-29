@@ -130,7 +130,7 @@ public class Fachada implements FachadaLogistica {
     );
     Paquete paqueteGuardado = paqueteR.save(paquete);
     metricas.counter("paquetes.creados").increment();
-    metricas.counter("entrada.pila").increment();
+
     List<NecesidadMaterialDTO> necesidadesMaterial = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(paqueteGuardado.getProductos());
 
     if(necesidadesMaterial.isEmpty()){
@@ -150,7 +150,7 @@ public class Fachada implements FachadaLogistica {
 
     channel.basicPublish("", queueName, null, body);
 
-
+    metricas.counter("entrada.pila").increment();
     channel.close();
     connection.close();
 
@@ -168,7 +168,6 @@ public class Fachada implements FachadaLogistica {
 
   @Override
   public AsignacionDTO ejecutarMatchmaking(String depositoID, PaqueteDTO paqueteDTO, List<NecesidadMaterialDTO> necesidades) {
-    //LocalDateTime tiempo = LocalDateTime.now();
     EstadoAsginacionEnum estado = EstadoAsginacionEnum.ASIGNADA;
     Paquete paquete = paqueteR.getReferenceById(paqueteDTO.id());
     Asignacion asignacion = asignacionR.findByPaqueteID(paqueteDTO.id()).orElseThrow(() -> new RuntimeException("No existe la asignación"));
