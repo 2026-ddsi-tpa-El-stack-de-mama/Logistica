@@ -11,12 +11,14 @@ import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaLogistica;
 import ar.edu.utn.dds.k3003.clientes.DonacionesClient;
 import ar.edu.utn.dds.k3003.clientes.DonadoresYEntidadesClient;
 import ar.edu.utn.dds.k3003.model.*;
+import ar.edu.utn.dds.k3003.observabilidad.TraceContext;
 import ar.edu.utn.dds.k3003.queue.AsignacionQueue;
 import ar.edu.utn.dds.k3003.repositories.AsignacionRepository;
 import ar.edu.utn.dds.k3003.repositories.AsignacionesHistorialRepository;
 import ar.edu.utn.dds.k3003.repositories.DepositoRepository;
 import ar.edu.utn.dds.k3003.repositories.PaqueteRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -148,7 +150,14 @@ public class Fachada implements FachadaLogistica {
 
     byte[] body = mapper.writeValueAsBytes(mensaje);
 
-    channel.basicPublish("", queueName, null, body);
+    String traceId = TraceContext.traceId();
+    Map<String, Object> headers = new HashMap<>();
+    if (traceId != null && !traceId.isBlank()) {
+        headers.put("traceId", traceId);
+    }
+    AMQP.BasicProperties props = new AMQP.BasicProperties.Builder().headers(headers).build();
+
+    channel.basicPublish("", queueName, props, body);
 
     metricas.counter("entrada.pila").increment();
     channel.close();

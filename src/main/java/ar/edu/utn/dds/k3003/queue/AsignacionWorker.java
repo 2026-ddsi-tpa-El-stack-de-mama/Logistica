@@ -6,8 +6,10 @@ import ar.edu.utn.dds.k3003.clientes.DonadoresYEntidadesClient;
 import ar.edu.utn.dds.k3003.clientes.LogisticaClient;
 import ar.edu.utn.dds.k3003.dtosPropios.AsignacionDirecta;
 import ar.edu.utn.dds.k3003.model.Paquete;
+import ar.edu.utn.dds.k3003.observabilidad.TraceContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
+import org.slf4j.MDC;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -15,7 +17,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
+import static jakarta.persistence.GenerationType.UUID;
 import static java.lang.Double.compare;
 
 public class AsignacionWorker extends DefaultConsumer {
@@ -39,6 +43,22 @@ public class AsignacionWorker extends DefaultConsumer {
 
     @Override
     public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+        String traceId = null;
+
+        if (properties != null && properties.getHeaders() != null) {
+            Object traceHeader = properties.getHeaders().get("traceId");
+
+            if (traceHeader != null) {
+                traceId = traceHeader.toString();
+            }
+        }
+
+        if (traceId == null || traceId.isBlank()) {
+            traceId = TraceContext.nuevoId();
+        }
+
+        MDC.put(TraceContext.TRACE_ID, traceId);
+        
         try {
             //Leer el mensaje
             String json = new String(body, StandardCharsets.UTF_8);
@@ -76,6 +96,8 @@ public class AsignacionWorker extends DefaultConsumer {
                     false,
                     true
             );
+        } finally {
+            MDC.remove(TraceContext.TRACE_ID);
         }
     }
 
