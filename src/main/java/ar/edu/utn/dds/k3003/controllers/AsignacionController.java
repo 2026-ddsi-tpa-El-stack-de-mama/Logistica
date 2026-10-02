@@ -25,8 +25,7 @@ public class AsignacionController {
 
     @GetMapping("/asignaciones/{id}")
     public Asignacion getAsignacion(@PathVariable String id){
-        Optional<Asignacion> asignacion = asignacionService.getAsignacion(id);
-        return asignacion.orElse(null);
+        return asignacionService.getAsignacion(id);
     }
 
     @GetMapping("/asignacionesHistorial")

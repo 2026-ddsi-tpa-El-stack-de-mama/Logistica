@@ -23,6 +23,7 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import org.junit.platform.commons.logging.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -32,6 +33,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
 
 @Service
 public class Fachada implements FachadaLogistica {
@@ -42,6 +44,7 @@ public class Fachada implements FachadaLogistica {
   private final AsignacionRepository asignacionR;
   private final AsignacionesHistorialRepository asignacionesHistorialR;
   private final MeterRegistry metricas;
+  private static final Logger log = (Logger) LoggerFactory.getLogger(Fachada.class);
 
   @Autowired
   public Fachada(DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR, DonacionesClient donacionesClient, DonadoresYEntidadesClient donadoresYEntidadesClient, AsignacionesHistorialRepository asignacionesHistorialR, MeterRegistry metricas) {
@@ -129,6 +132,8 @@ public class Fachada implements FachadaLogistica {
     if(necesidadesMaterial.isEmpty()){
       depositoPaquete.getStockActual().add(paqueteGuardado);
       depositoR.save(depositoPaquete);
+      channel.close();
+      connection.close();
       return deposito;
     }
     depositoPaquete.setCapacidadMaxima(depositoPaquete.getCapacidadMaxima() - paquete.getCantidad());
@@ -169,24 +174,25 @@ public class Fachada implements FachadaLogistica {
   public AsignacionDTO ejecutarMatchmaking(String depositoID, PaqueteDTO paqueteDTO, List<NecesidadMaterialDTO> necesidades) {
     EstadoAsginacionEnum estado = EstadoAsginacionEnum.ASIGNADA;
     Paquete paquete = paqueteR.findById(paqueteDTO.id()).orElseThrow(() -> new PaqueteNoEncontradoException(paqueteDTO.id()));
-    Asignacion asignacion = asignacionR.findByPaqueteID(paqueteDTO.id()).orElseThrow(() -> new AsignacionNoEncontradaException(paqueteDTO.id()));
+    Asignacion asignacion = asignacionR.findByPaqueteID(paquete.getId()).orElseThrow(() -> new AsignacionNoEncontradaException(paquete.getId()));
     NecesidadMaterialDTO necesidad = donadoresYEntidadesClient.obtenerNecesidad(asignacion.getNecesidadID()).getBody();
     String necesidadID = necesidad.id();
       if(Objects.equals(paqueteDTO.cantidad(), necesidad.cantidadObjetivo())) {
-          System.out.println("Se asignó por completo el paquete");
+          log.info("Paquete asignado por completo");
       }
       else if (paqueteDTO.cantidad() > necesidad.cantidadObjetivo()){
-          paquete.setCantidad(paqueteDTO.cantidad() - necesidad.cantidadObjetivo());
+          paquete.setCantidad(paquete.getCantidad() - necesidad.cantidadObjetivo());
           paqueteR.save(paquete);
           Deposito depositoSobrante = depositoR.findById(depositoID).orElseThrow(() -> new DepositoNoEncontradoException(depositoID));
           depositoR.save(depositoSobrante);
       }
       else {
           if (necesidad.tipo() == TipoNecesidadMaterialEnum.EXTRAORDINARIA) {
-              System.out.println("Se asignó por completo el paquete");
+              log.info("Paquete asignado por completo");
           } else {
-              necesidad = necesidades.stream().filter(n -> !n.id().equals(necesidadID) && (n.tipo() == TipoNecesidadMaterialEnum.EXTRAORDINARIA || n.cantidadObjetivo() <= paqueteDTO.cantidad()))
+              necesidad = necesidades.stream().filter(n -> !n.id().equals(necesidadID) && (n.tipo() == TipoNecesidadMaterialEnum.EXTRAORDINARIA || n.cantidadObjetivo() <= paquete.getCantidad()))
                       .findFirst().orElseThrow(NecesidadNoCompatible::new);
+              asignacion.setNecesidadID(necesidad.id());
           }
       }
       asignacionR.save(asignacion);
@@ -205,7 +211,6 @@ public class Fachada implements FachadaLogistica {
             asignacion.getEstado(),
             LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
     );
-
 
     if (asignacion.getEstado() == EstadoAsignacionEnum.COMPLETADA) {
       throw new AsignacionEntregadaException();

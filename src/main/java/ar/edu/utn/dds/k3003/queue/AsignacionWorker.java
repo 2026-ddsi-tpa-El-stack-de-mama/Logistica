@@ -5,10 +5,13 @@ import ar.edu.utn.dds.k3003.catedra.dtos.logistica.*;
 import ar.edu.utn.dds.k3003.clientes.DonadoresYEntidadesClient;
 import ar.edu.utn.dds.k3003.clientes.LogisticaClient;
 import ar.edu.utn.dds.k3003.dtosPropios.AsignacionDirecta;
+import ar.edu.utn.dds.k3003.exceptions.CantidadNoSuficienteException;
+import ar.edu.utn.dds.k3003.exceptions.PaqueteNoEncontradoException;
 import ar.edu.utn.dds.k3003.model.Paquete;
 import ar.edu.utn.dds.k3003.observabilidad.TraceContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
+import org.junit.platform.commons.logging.LoggerFactory;
 import org.slf4j.MDC;
 
 import java.io.IOException;
@@ -17,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 import static java.lang.Double.compare;
 
@@ -24,6 +28,7 @@ public class AsignacionWorker extends DefaultConsumer {
     private String queueName;
     private LogisticaClient logisticaClient;
     private DonadoresYEntidadesClient donadoresYEntidadesClient;
+    private static final Logger log = (Logger) LoggerFactory.getLogger(AsignacionWorker.class);
 
     public AsignacionWorker(Channel channel, String queueName, LogisticaClient logisticaClient, DonadoresYEntidadesClient donadoresYEntidadesClient) {
         super(channel);
@@ -66,22 +71,22 @@ public class AsignacionWorker extends DefaultConsumer {
             String paqueteId = mensaje.paqueteID();
             TipoAlgoritmoEnum algoritmo = mensaje.algoritmo();
 
-            System.out.println("Paquete recibido: " + paqueteId);
-            System.out.println("Algoritmo: " + algoritmo);
+            log.info("Paquete recibido. paqueteID= " + paqueteId);
+            log.info("Algoritmo de asignación. algoritmo= " + algoritmo);
 
             //Sigue algoritmo
 
-            Optional<Paquete> paquete = logisticaClient.buscarPaquete(paqueteId);
+            Paquete paquete = logisticaClient.buscarPaquete(paqueteId).orElseThrow(() -> new PaqueteNoEncontradoException(paqueteId));
             PaqueteDTO paqueteDTO = new PaqueteDTO(
-                    paquete.get().getId(),
-                    paquete.get().getDonacionID(),
-                    paquete.get().getProductos(),
-                    paquete.get().getCantidad()
+                    paquete.getId(),
+                    paquete.getDonacionID(),
+                    paquete.getProductos(),
+                    paquete.getCantidad()
             );
             List<NecesidadMaterialDTO> necesidades = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(paqueteDTO.producto());
             ejecutarMatchmaking(paqueteDTO, necesidades, algoritmo);
             if (paqueteDTO.cantidad() <= 0){
-                throw new RuntimeException("No hay cantidad suficiente");
+                throw new CantidadNoSuficienteException();
             }
 
             getChannel().basicAck(envelope.getDeliveryTag(), false);

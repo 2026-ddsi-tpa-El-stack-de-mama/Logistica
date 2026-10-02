@@ -6,6 +6,8 @@ import ar.edu.utn.dds.k3003.catedra.dtos.logistica.AsignacionDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.PaqueteDTO;
 import ar.edu.utn.dds.k3003.clientes.DonadoresYEntidadesClient;
 import ar.edu.utn.dds.k3003.dtosPropios.AsignacionDirecta;
+import ar.edu.utn.dds.k3003.exceptions.AsignacionNoEncontradaException;
+import ar.edu.utn.dds.k3003.exceptions.PaqueteNoEncontradoException;
 import ar.edu.utn.dds.k3003.model.*;
 import ar.edu.utn.dds.k3003.repositories.AsignacionRepository;
 import ar.edu.utn.dds.k3003.repositories.AsignacionesHistorialRepository;
@@ -14,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,8 +34,8 @@ public class AsignacionService {
         this.asignacionesHistorialR = asignacionesHistorialR;
         this.paqueteR = paqueteR;
     }
-    public Optional<Asignacion> getAsignacion(String id) {
-        return asignacionR.findById(id);
+    public Asignacion getAsignacion(String id) {
+        return asignacionR.findById(id).orElseThrow(() -> new AsignacionNoEncontradaException(id));
     }
 
     public List<AsignacionesHistorial> getAsignacionesHistorial() {
@@ -57,7 +58,7 @@ public class AsignacionService {
     }
 
     public AsignacionDTO postAsignacion(AsignacionDirecta decision) {
-        Paquete paquete = paqueteR.findById(decision.paqueteID()).orElseThrow(() -> new RuntimeException("No existe el paquete"));
+        Paquete paquete = paqueteR.findById(decision.paqueteID()).orElseThrow(() -> new PaqueteNoEncontradoException(decision.paqueteID()));
 
         Asignacion asignacion = new Asignacion(
                 null,

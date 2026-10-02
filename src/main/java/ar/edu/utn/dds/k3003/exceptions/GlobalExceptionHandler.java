@@ -39,6 +39,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse("Necesidad no compatible", e.getMessage()));
     }
 
+    @ExceptionHandler(CantidadNoSuficienteException.class)
+    public ResponseEntity<ErrorResponse> cantidadNoSuficiente(CantidadNoSuficienteException e){
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse("Cantidad no suficiente", e.getMessage()));
+    }
+
     public record ErrorResponse(String error,String mensaje) {}
 
 }

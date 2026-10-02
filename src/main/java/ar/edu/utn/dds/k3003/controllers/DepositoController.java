@@ -24,8 +24,7 @@ public class DepositoController {
 
     @GetMapping("/depositos/{id}")
     public Deposito getDeposito(@PathVariable String id){
-        Optional<Deposito> deposito = depositoService.getDeposito(id);
-        return deposito.orElse(null);
+        return depositoService.getDeposito(id);
     }
 
     @DeleteMapping("/depositos/{id}")
