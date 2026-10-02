@@ -17,9 +17,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
-import static jakarta.persistence.GenerationType.UUID;
 import static java.lang.Double.compare;
 
 public class AsignacionWorker extends DefaultConsumer {

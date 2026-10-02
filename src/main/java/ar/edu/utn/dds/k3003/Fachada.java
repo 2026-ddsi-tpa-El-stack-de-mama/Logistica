@@ -32,14 +32,6 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 
-/*
-- Mejorar lo de capacidad máxima.
-- Ver del bot de telegram para crear necesidad. Listo
-- Mejorar datadog Listo
-- Mejorar getStock Listo
-* */
-
-
 @Service
 public class Fachada implements FachadaLogistica {
   private final DonacionesClient donacionesClient;
@@ -63,13 +55,12 @@ public class Fachada implements FachadaLogistica {
 
   @Override
   public DepositoDTO agregarDeposito(DepositoDTO deposito) {
-      DepositoDTO depositoDTO = new DepositoDTO(null, null, deposito.nombre(), deposito.direccion(), deposito.capacidadMaxima(), null);
       Deposito dep = new Deposito(
-              depositoDTO.id(),
-              depositoDTO.nombre(),
-              depositoDTO.algoritmo(),
-              depositoDTO.direccion(),
-              depositoDTO.capacidadMaxima(),
+              deposito.id(),
+              deposito.nombre(),
+              deposito.algoritmo(),
+              deposito.direccion(),
+              deposito.capacidadMaxima(),
               null
       );
       dep = depositoR.save(dep);
@@ -114,14 +105,13 @@ public class Fachada implements FachadaLogistica {
     factory.setPassword(env.get("QUEUE_PASSWORD"));
     factory.setVirtualHost(env.get("QUEUE_USERNAME"));
 
-    Connection connection = factory.newConnection();
-
-    Channel channel = connection.createChannel();
-    String queueName = env.get("QUEUE_NAME");
-
     if(depositoPaquete.getCapacidadMaxima() < cantidad){
         throw new RuntimeException("No hay espacio en el depósito");
     }
+
+    Connection connection = factory.newConnection();
+    Channel channel = connection.createChannel();
+    String queueName = env.get("QUEUE_NAME");
 
     Paquete paquete = new Paquete(
             null,
@@ -163,6 +153,7 @@ public class Fachada implements FachadaLogistica {
     channel.close();
     connection.close();
 
+    depositoR.save(depositoPaquete);
     return deposito;
   }
 
@@ -178,7 +169,7 @@ public class Fachada implements FachadaLogistica {
   @Override
   public AsignacionDTO ejecutarMatchmaking(String depositoID, PaqueteDTO paqueteDTO, List<NecesidadMaterialDTO> necesidades) {
     EstadoAsginacionEnum estado = EstadoAsginacionEnum.ASIGNADA;
-    Paquete paquete = paqueteR.getReferenceById(paqueteDTO.id());
+    Paquete paquete = paqueteR.findById(paqueteDTO.id()).orElseThrow(() -> new RuntimeException("No existe el paquete"));
     Asignacion asignacion = asignacionR.findByPaqueteID(paqueteDTO.id()).orElseThrow(() -> new RuntimeException("No existe la asignación"));
     NecesidadMaterialDTO necesidad = donadoresYEntidadesClient.obtenerNecesidad(asignacion.getNecesidadID()).getBody();
     String necesidadID = necesidad.id();
@@ -215,14 +206,14 @@ public class Fachada implements FachadaLogistica {
             asignacion.getEstado(),
             LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"))
     );
-    asignacionesHistorialR.save(asignacionesH);
+
 
     if (asignacion.getEstado() == EstadoAsignacionEnum.COMPLETADA) {
       throw new RuntimeException("La asignación ya fue entregada");
     }
-    else{
-      asignacion.setEstado(EstadoAsignacionEnum.COMPLETADA);
-    }
+
+    asignacionesHistorialR.save(asignacionesH);
+    asignacion.setEstado(EstadoAsignacionEnum.COMPLETADA);
     asignacionR.save(asignacion);
 
     donadoresYEntidadesClient.satisfacerNecesidad(asignacion.getNecesidadID(), paqueteDTO.cantidad());
