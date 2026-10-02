@@ -23,7 +23,6 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-import org.junit.platform.commons.logging.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -33,7 +32,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class Fachada implements FachadaLogistica {
@@ -44,7 +44,7 @@ public class Fachada implements FachadaLogistica {
   private final AsignacionRepository asignacionR;
   private final AsignacionesHistorialRepository asignacionesHistorialR;
   private final MeterRegistry metricas;
-  private static final Logger log = (Logger) LoggerFactory.getLogger(Fachada.class);
+  private static final Logger log = LoggerFactory.getLogger(Fachada.class);
 
   @Autowired
   public Fachada(DepositoRepository depositoR, PaqueteRepository paqueteR, AsignacionRepository asignacionR, DonacionesClient donacionesClient, DonadoresYEntidadesClient donadoresYEntidadesClient, AsignacionesHistorialRepository asignacionesHistorialR, MeterRegistry metricas) {

@@ -11,7 +11,6 @@ import ar.edu.utn.dds.k3003.model.Paquete;
 import ar.edu.utn.dds.k3003.observabilidad.TraceContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
-import org.junit.platform.commons.logging.LoggerFactory;
 import org.slf4j.MDC;
 
 import java.io.IOException;
@@ -19,8 +18,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Optional;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.lang.Double.compare;
 
@@ -28,7 +27,7 @@ public class AsignacionWorker extends DefaultConsumer {
     private String queueName;
     private LogisticaClient logisticaClient;
     private DonadoresYEntidadesClient donadoresYEntidadesClient;
-    private static final Logger log = (Logger) LoggerFactory.getLogger(AsignacionWorker.class);
+    private static final Logger log = LoggerFactory.getLogger(AsignacionWorker.class);
 
     public AsignacionWorker(Channel channel, String queueName, LogisticaClient logisticaClient, DonadoresYEntidadesClient donadoresYEntidadesClient) {
         super(channel);
