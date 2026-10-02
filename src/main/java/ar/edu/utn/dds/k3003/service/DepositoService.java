@@ -64,7 +64,7 @@ public class DepositoService {
     public String getStock(String productoID){
         List<Paquete> paquete = paqueteR.findByProductos(productoID);
         String stocks = "";
-        for (int i = 0; i < paquete.toArray().length; i++){
+        for (int i = 0; i < paquete.size(); i++){
             stocks += "Cantidad: " + paquete.get(i).getCantidad() + ". Paquete: " + paquete.get(i).getId() + "\n";
         }
         return stocks;

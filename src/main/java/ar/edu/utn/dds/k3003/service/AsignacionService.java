@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,6 +44,16 @@ public class AsignacionService {
     public Optional<PaqueteDTO> getPaquete(String id){
         Optional<Paquete> paquete = paqueteR.findById(id);
         return Optional.of(new PaqueteDTO(paquete.get().getId(), paquete.get().getDonacionID(), paquete.get().getProductos(), paquete.get().getCantidad()));
+    }
+
+    public List<PaqueteDTO> getPaquetes(){
+        return paqueteR.findAll().stream().map(paquete -> new PaqueteDTO(
+                        paquete.getId(),
+                        paquete.getDonacionID(),
+                        paquete.getProductos(),
+                        paquete.getCantidad()
+                ))
+                .toList();
     }
 
     public AsignacionDTO postAsignacion(AsignacionDirecta decision) {
