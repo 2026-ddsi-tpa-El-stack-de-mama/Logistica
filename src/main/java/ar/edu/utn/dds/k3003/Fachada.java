@@ -10,6 +10,7 @@ import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaLogistica;
 import ar.edu.utn.dds.k3003.clientes.DonacionesClient;
 import ar.edu.utn.dds.k3003.clientes.DonadoresYEntidadesClient;
+import ar.edu.utn.dds.k3003.exceptions.*;
 import ar.edu.utn.dds.k3003.model.*;
 import ar.edu.utn.dds.k3003.observabilidad.TraceContext;
 import ar.edu.utn.dds.k3003.queue.AsignacionQueue;
@@ -69,7 +70,7 @@ public class Fachada implements FachadaLogistica {
 
   @Override
   public DepositoDTO buscarDepositoPorID(String depositoID) throws NoSuchElementException {
-    Deposito deposito = depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe el depósito"));
+    Deposito deposito = depositoR.findById(depositoID).orElseThrow(() -> new DepositoNoEncontradoException(depositoID));
     List<PaqueteDTO> stock = deposito.getStockActual().stream().map(p -> new PaqueteDTO(
                       p.getId(),
                       p.getDonacionID(),
@@ -80,7 +81,7 @@ public class Fachada implements FachadaLogistica {
 
   @Override
   public AsignacionDTO buscarAsignacionPorPaqueteID(String paqueteID) throws NoSuchElementException {
-      Asignacion asignacion = asignacionR.findByPaqueteID(paqueteID).orElseThrow(() -> new RuntimeException("No existe la asignación"));
+      Asignacion asignacion = asignacionR.findByPaqueteID(paqueteID).orElseThrow(() -> new AsignacionNoEncontradaException(paqueteID));
       EstadoAsginacionEnum estado;
       if (asignacion.getEstado() == EstadoAsignacionEnum.ASIGNADA){estado = EstadoAsginacionEnum.ASIGNADA;}
       else{estado = EstadoAsginacionEnum.COMPLETADA;}
@@ -96,7 +97,7 @@ public class Fachada implements FachadaLogistica {
   @Override
   public DepositoDTO gestionarDonacion(String depositoID, String donacionID, String productoID, Integer cantidad) throws NoSuchElementException, IOException, TimeoutException {
     DepositoDTO deposito = buscarDepositoPorID(depositoID);
-    Deposito depositoPaquete = depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe el depósito"));
+    Deposito depositoPaquete = depositoR.findById(depositoID).orElseThrow(() -> new DepositoNoEncontradoException(depositoID));
 
     ConnectionFactory factory = new ConnectionFactory();
     Map<String, String> env = System.getenv();
@@ -106,7 +107,7 @@ public class Fachada implements FachadaLogistica {
     factory.setVirtualHost(env.get("QUEUE_USERNAME"));
 
     if(depositoPaquete.getCapacidadMaxima() < cantidad){
-        throw new RuntimeException("No hay espacio en el depósito");
+        throw new DepositoSinEspacioException(depositoID);
     }
 
     Connection connection = factory.newConnection();
@@ -159,18 +160,16 @@ public class Fachada implements FachadaLogistica {
 
   @Override
   public void setAlgoritmoMM(String depositoID, TipoAlgoritmoEnum tipoAlgoritmo) {
-    Deposito deposito = depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe el depósito"));
-
+    Deposito deposito = depositoR.findById(depositoID).orElseThrow(() -> new DepositoNoEncontradoException(depositoID));
     deposito.setAlgoritmo(tipoAlgoritmo);
-
     depositoR.save(deposito);
   }
 
   @Override
   public AsignacionDTO ejecutarMatchmaking(String depositoID, PaqueteDTO paqueteDTO, List<NecesidadMaterialDTO> necesidades) {
     EstadoAsginacionEnum estado = EstadoAsginacionEnum.ASIGNADA;
-    Paquete paquete = paqueteR.findById(paqueteDTO.id()).orElseThrow(() -> new RuntimeException("No existe el paquete"));
-    Asignacion asignacion = asignacionR.findByPaqueteID(paqueteDTO.id()).orElseThrow(() -> new RuntimeException("No existe la asignación"));
+    Paquete paquete = paqueteR.findById(paqueteDTO.id()).orElseThrow(() -> new PaqueteNoEncontradoException(paqueteDTO.id()));
+    Asignacion asignacion = asignacionR.findByPaqueteID(paqueteDTO.id()).orElseThrow(() -> new AsignacionNoEncontradaException(paqueteDTO.id()));
     NecesidadMaterialDTO necesidad = donadoresYEntidadesClient.obtenerNecesidad(asignacion.getNecesidadID()).getBody();
     String necesidadID = necesidad.id();
       if(Objects.equals(paqueteDTO.cantidad(), necesidad.cantidadObjetivo())) {
@@ -179,7 +178,7 @@ public class Fachada implements FachadaLogistica {
       else if (paqueteDTO.cantidad() > necesidad.cantidadObjetivo()){
           paquete.setCantidad(paqueteDTO.cantidad() - necesidad.cantidadObjetivo());
           paqueteR.save(paquete);
-          Deposito depositoSobrante = depositoR.findById(depositoID).orElseThrow(() -> new RuntimeException("No existe el depósito"));
+          Deposito depositoSobrante = depositoR.findById(depositoID).orElseThrow(() -> new DepositoNoEncontradoException(depositoID));
           depositoR.save(depositoSobrante);
       }
       else {
@@ -187,7 +186,7 @@ public class Fachada implements FachadaLogistica {
               System.out.println("Se asignó por completo el paquete");
           } else {
               necesidad = necesidades.stream().filter(n -> !n.id().equals(necesidadID) && (n.tipo() == TipoNecesidadMaterialEnum.EXTRAORDINARIA || n.cantidadObjetivo() <= paqueteDTO.cantidad()))
-                      .findFirst().orElseThrow(() -> new RuntimeException("No hay otra necesidad compatible"));
+                      .findFirst().orElseThrow(NecesidadNoCompatible::new);
           }
       }
       asignacionR.save(asignacion);
@@ -197,8 +196,8 @@ public class Fachada implements FachadaLogistica {
 
   @Override
   public void reportarEntrega(PaqueteDTO paqueteDTO) {
-    Paquete paquete = paqueteR.findById(paqueteDTO.id()).orElseThrow(() -> new RuntimeException("No existe el paquete"));
-    Asignacion asignacion = asignacionR.findByPaqueteID(paquete.getId()).orElseThrow(() -> new RuntimeException("No existe la asignación"));
+    Paquete paquete = paqueteR.findById(paqueteDTO.id()).orElseThrow(() -> new PaqueteNoEncontradoException(paqueteDTO.id()));
+    Asignacion asignacion = asignacionR.findByPaqueteID(paquete.getId()).orElseThrow(() -> new AsignacionNoEncontradaException(paqueteDTO.id()));
 
     AsignacionesHistorial asignacionesH = new AsignacionesHistorial(
             null,
@@ -209,7 +208,7 @@ public class Fachada implements FachadaLogistica {
 
 
     if (asignacion.getEstado() == EstadoAsignacionEnum.COMPLETADA) {
-      throw new RuntimeException("La asignación ya fue entregada");
+      throw new AsignacionEntregadaException();
     }
 
     asignacionesHistorialR.save(asignacionesH);
