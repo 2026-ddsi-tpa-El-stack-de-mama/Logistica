@@ -127,6 +127,7 @@ public class AsignacionWorker extends DefaultConsumer {
                 necesidad.id()
         );
         logisticaClient.crearAsignacion(asignacionDirecta);
+        log.info("Asignación creada correctamente.");
         return asignacionDirecta;
     }
 
