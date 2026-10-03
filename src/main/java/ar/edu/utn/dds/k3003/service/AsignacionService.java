@@ -42,9 +42,13 @@ public class AsignacionService {
         return asignacionesHistorialR.findAll();
     }
 
-    public Optional<PaqueteDTO> getPaquete(String id){
-        Optional<Paquete> paquete = paqueteR.findById(id);
-        return Optional.of(new PaqueteDTO(paquete.get().getId(), paquete.get().getDonacionID(), paquete.get().getProductos(), paquete.get().getCantidad()));
+    public Optional<PaqueteDTO> getPaquete(String id){    return paqueteR.findById(id)
+            .map(paquete -> new PaqueteDTO(
+                    paquete.getId(),
+                    paquete.getDonacionID(),
+                    paquete.getProductos(),
+                    paquete.getCantidad()
+            ));
     }
 
     public List<PaqueteDTO> getPaquetes(){
