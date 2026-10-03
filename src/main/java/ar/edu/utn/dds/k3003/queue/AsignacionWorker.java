@@ -82,8 +82,8 @@ public class AsignacionWorker extends DefaultConsumer {
                     paquete.getProductos(),
                     paquete.getCantidad()
             );
-            log.info("Buscando necesidades. productoId={}", paqueteDTO.producto());
-            List<NecesidadMaterialDTO> necesidades = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(paqueteDTO.producto());
+            log.info("Buscando necesidades. productoId={}", paquete.getProductos());
+            List<NecesidadMaterialDTO> necesidades = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(paquete.getProductos());
             log.info("Necesidades encontradas: {}", necesidades.size());
             ejecutarMatchmaking(paqueteDTO, necesidades, algoritmo);
             if (paqueteDTO.cantidad() <= 0){
