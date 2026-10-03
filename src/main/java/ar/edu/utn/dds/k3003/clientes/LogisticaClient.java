@@ -1,5 +1,6 @@
 package ar.edu.utn.dds.k3003.clientes;
 
+import ar.edu.utn.dds.k3003.catedra.dtos.logistica.PaqueteDTO;
 import ar.edu.utn.dds.k3003.dtosPropios.AsignacionDirecta;
 import ar.edu.utn.dds.k3003.model.Paquete;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -11,7 +12,7 @@ import java.util.Optional;
 public interface LogisticaClient {
 
     @GetMapping("/paquetes/{id}")
-    Optional<Paquete> buscarPaquete(@PathVariable("id") String id);
+    Optional<PaqueteDTO> buscarPaquete(@PathVariable("id") String id);
 
     @PostMapping("/asignaciones")
     AsignacionDirecta crearAsignacion(@RequestBody AsignacionDirecta asignacion);

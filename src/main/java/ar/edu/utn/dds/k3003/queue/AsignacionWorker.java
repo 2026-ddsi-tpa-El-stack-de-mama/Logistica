@@ -75,26 +75,20 @@ public class AsignacionWorker extends DefaultConsumer {
 
             //Sigue algoritmo
 
-            Paquete paquete = logisticaClient.buscarPaquete(paqueteId).orElseThrow(() -> new PaqueteNoEncontradoException(paqueteId));
+            PaqueteDTO paquete = logisticaClient.buscarPaquete(paqueteId).orElseThrow(() -> new PaqueteNoEncontradoException(paqueteId));
 
             log.info(
                     "Paquete recuperado desde Logística. id={}, productoId={}, cantidad={}",
-                    paquete.getId(),
-                    paquete.getProductos(),
-                    paquete.getCantidad()
+                    paquete.id(),
+                    paquete.producto(),
+                    paquete.cantidad()
             );
 
-            PaqueteDTO paqueteDTO = new PaqueteDTO(
-                    paquete.getId(),
-                    paquete.getDonacionID(),
-                    paquete.getProductos(),
-                    paquete.getCantidad()
-            );
-            log.info("Buscando necesidades. productoId={}", paquete.getProductos());
-            List<NecesidadMaterialDTO> necesidades = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(paquete.getProductos());
+            log.info("Buscando necesidades. productoId={}", paquete.producto());
+            List<NecesidadMaterialDTO> necesidades = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(paquete.producto());
             log.info("Necesidades encontradas: {}", necesidades.size());
-            ejecutarMatchmaking(paqueteDTO, necesidades, algoritmo);
-            if (paqueteDTO.cantidad() <= 0){
+            ejecutarMatchmaking(paquete, necesidades, algoritmo);
+            if (paquete.cantidad() <= 0){
                 throw new CantidadNoSuficienteException();
             }
 
