@@ -11,7 +11,7 @@ import java.util.List;
 public interface DonadoresYEntidadesClient {
 
     @GetMapping("/necesidades/insatisfechas")
-    List<NecesidadMaterialDTO> obtenerNecesidadesInsatisfechasDe(@RequestParam String productoId);
+    List<NecesidadMaterialDTO> obtenerNecesidadesInsatisfechas(@RequestParam String productoId);
 
     @PostMapping("necesidades/{necesidadID}/satisfaccion")
     NecesidadMaterialDTO satisfacerNecesidad(@PathVariable String necesidadID, @RequestParam Integer cantidad);
