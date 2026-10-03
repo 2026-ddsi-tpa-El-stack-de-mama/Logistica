@@ -125,6 +125,13 @@ public class Fachada implements FachadaLogistica {
             depositoPaquete
     );
     Paquete paqueteGuardado = paqueteR.save(paquete);
+      log.info(
+              "Paquete guardado. id={}, productoId={}, donacionId={}, cantidad={}",
+              paqueteGuardado.getId(),
+              paqueteGuardado.getProductos(),
+              paqueteGuardado.getDonacionID(),
+              paqueteGuardado.getCantidad()
+      );
     metricas.counter("paquetes.creados").increment();
 
     List<NecesidadMaterialDTO> necesidadesMaterial = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(paqueteGuardado.getProductos());
@@ -137,10 +144,17 @@ public class Fachada implements FachadaLogistica {
       return deposito;
     }
     depositoPaquete.setCapacidadMaxima(depositoPaquete.getCapacidadMaxima() - paquete.getCantidad());
+
     AsignacionQueue mensaje = new AsignacionQueue(
             paqueteGuardado.getId(),
             depositoPaquete.getAlgoritmo()
     );
+
+      log.info(
+              "Enviando paquete a la pila. paqueteID={}, algoritmo={}",
+              mensaje.paqueteID(),
+              mensaje.algoritmo()
+      );
 
     ObjectMapper mapper = new ObjectMapper();
 

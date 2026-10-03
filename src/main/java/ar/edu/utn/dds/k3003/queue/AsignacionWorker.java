@@ -76,6 +76,14 @@ public class AsignacionWorker extends DefaultConsumer {
             //Sigue algoritmo
 
             Paquete paquete = logisticaClient.buscarPaquete(paqueteId).orElseThrow(() -> new PaqueteNoEncontradoException(paqueteId));
+
+            log.info(
+                    "Paquete recuperado desde Logística. id={}, productoId={}, cantidad={}",
+                    paquete.getId(),
+                    paquete.getProductos(),
+                    paquete.getCantidad()
+            );
+
             PaqueteDTO paqueteDTO = new PaqueteDTO(
                     paquete.getId(),
                     paquete.getDonacionID(),
