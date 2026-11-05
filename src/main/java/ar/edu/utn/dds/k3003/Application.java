@@ -34,12 +34,12 @@ public class Application implements CommandLineRunner {
 
     ConnectionFactory factory = new ConnectionFactory();
 
-    factory.setHost(env.get("QUEUE_HOST"));
-    factory.setUsername(env.get("QUEUE_USERNAME"));
-    factory.setPassword(env.get("QUEUE_PASSWORD"));
-    factory.setVirtualHost(env.get("QUEUE_USERNAME"));
+    factory.setHost(env.get("A_QUEUE_HOST"));
+    factory.setUsername(env.get("A_QUEUE_USERNAME"));
+    factory.setPassword(env.get("A_QUEUE_PASSWORD"));
+    factory.setVirtualHost(env.get("A_QUEUE_USERNAME"));
 
-    String queueName = env.get("QUEUE_NAME");
+    String queueName = env.get("A_QUEUE_NAME");
 
     Connection connection = factory.newConnection();
     Channel channel = connection.createChannel();
