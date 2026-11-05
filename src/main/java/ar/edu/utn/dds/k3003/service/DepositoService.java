@@ -50,14 +50,14 @@ public class DepositoService {
 
         ConnectionFactory factory = new ConnectionFactory();
         Map<String, String> env = System.getenv();
-        factory.setHost(env.get("QUEUE_HOST"));
-        factory.setUsername(env.get("QUEUE_USERNAME"));
-        factory.setPassword(env.get("QUEUE_PASSWORD"));
-        factory.setVirtualHost(env.get("QUEUE_USERNAME"));
+        factory.setHost(env.get("E_QUEUE_HOST"));
+        factory.setUsername(env.get("E_QUEUE_USERNAME"));
+        factory.setPassword(env.get("E_QUEUE_PASSWORD"));
+        factory.setVirtualHost(env.get("E_QUEUE_USERNAME"));
         try {
             Connection connection = factory.newConnection();
             Channel channel = connection.createChannel();
-            String queueName = env.get("QUEUE_NAME");
+            String queueName = env.get("E_QUEUE_NAME");
 
             channel.queueDeclare(
                     queueName,
