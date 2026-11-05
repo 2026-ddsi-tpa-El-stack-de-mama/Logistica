@@ -2,14 +2,21 @@ package ar.edu.utn.dds.k3003.service;
 
 import ar.edu.utn.dds.k3003.Fachada;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.PaqueteDTO;
+import ar.edu.utn.dds.k3003.eventos.DepositoEvento;
 import ar.edu.utn.dds.k3003.exceptions.AsignacionNoEncontradaException;
 import ar.edu.utn.dds.k3003.exceptions.DepositoNoEncontradoException;
 import ar.edu.utn.dds.k3003.exceptions.PaqueteNoEncontradoException;
 import ar.edu.utn.dds.k3003.model.Deposito;
 import ar.edu.utn.dds.k3003.model.Paquete;
+import ar.edu.utn.dds.k3003.queue.EventoQueue;
 import ar.edu.utn.dds.k3003.repositories.AsignacionRepository;
 import ar.edu.utn.dds.k3003.repositories.DepositoRepository;
 import ar.edu.utn.dds.k3003.repositories.PaqueteRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -40,6 +47,41 @@ public class DepositoService {
 
     public Deposito postDeposito(Deposito deposito) {
         depositoR.save(deposito);
+
+        ConnectionFactory factory = new ConnectionFactory();
+        Map<String, String> env = System.getenv();
+        factory.setHost(env.get("QUEUE_HOST"));
+        factory.setUsername(env.get("QUEUE_USERNAME"));
+        factory.setPassword(env.get("QUEUE_PASSWORD"));
+        factory.setVirtualHost(env.get("QUEUE_USERNAME"));
+        try {
+            Connection connection = factory.newConnection();
+            Channel channel = connection.createChannel();
+            String queueName = env.get("QUEUE_NAME");
+
+            channel.queueDeclare(
+                    queueName,
+                    true,
+                    false,
+                    false,
+                    null
+            );
+
+            DepositoEvento descripcion = new DepositoEvento(deposito.getId());
+            EventoQueue evento = new EventoQueue(UUID.randomUUID().toString(), "DepositoEvento", descripcion);
+            ObjectMapper mapper = new ObjectMapper();
+            byte[] body = mapper.writeValueAsBytes(evento);
+            Map<String, Object> headers = new HashMap<>();
+            AMQP.BasicProperties props = new AMQP.BasicProperties.Builder().headers(headers).build();
+            channel.basicPublish("", queueName, props, body);
+            channel.close();
+            connection.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (TimeoutException e) {
+            throw new RuntimeException(e);
+        }
+
         return deposito;
     }
 

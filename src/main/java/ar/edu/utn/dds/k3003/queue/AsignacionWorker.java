@@ -7,7 +7,6 @@ import ar.edu.utn.dds.k3003.clientes.LogisticaClient;
 import ar.edu.utn.dds.k3003.dtosPropios.AsignacionDirecta;
 import ar.edu.utn.dds.k3003.exceptions.CantidadNoSuficienteException;
 import ar.edu.utn.dds.k3003.exceptions.PaqueteNoEncontradoException;
-import ar.edu.utn.dds.k3003.model.Paquete;
 import ar.edu.utn.dds.k3003.observabilidad.TraceContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.*;
