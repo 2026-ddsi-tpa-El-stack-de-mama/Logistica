@@ -10,10 +10,12 @@ import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaLogistica;
 import ar.edu.utn.dds.k3003.clientes.DonacionesClient;
 import ar.edu.utn.dds.k3003.clientes.DonadoresYEntidadesClient;
+import ar.edu.utn.dds.k3003.eventos.DepositoEvento;
 import ar.edu.utn.dds.k3003.exceptions.*;
 import ar.edu.utn.dds.k3003.model.*;
 import ar.edu.utn.dds.k3003.observabilidad.TraceContext;
 import ar.edu.utn.dds.k3003.queue.AsignacionQueue;
+import ar.edu.utn.dds.k3003.queue.EventoQueue;
 import ar.edu.utn.dds.k3003.repositories.AsignacionRepository;
 import ar.edu.utn.dds.k3003.repositories.AsignacionesHistorialRepository;
 import ar.edu.utn.dds.k3003.repositories.DepositoRepository;
@@ -211,6 +213,41 @@ public class Fachada implements FachadaLogistica {
       }
       asignacionR.save(asignacion);
       metricas.counter("asignaciones.creados").increment();
+
+      //EVENTO
+
+      ConnectionFactory factory = new ConnectionFactory();
+      Map<String, String> env = System.getenv();
+      factory.setHost(env.get("E_QUEUE_HOST"));
+      factory.setUsername(env.get("E_QUEUE_USERNAME"));
+      factory.setPassword(env.get("E_QUEUE_PASSWORD"));
+      factory.setVirtualHost(env.get("E_QUEUE_USERNAME"));
+      try {
+          Connection connection = factory.newConnection();
+          Channel channel = connection.createChannel();
+          String queueName = env.get("E_QUEUE_NAME");
+          channel.queueDeclare(
+                  queueName,
+                  true,
+                  false,
+                  false,
+                  null
+          );
+          AsignacionDTO descripcion = new AsignacionDTO(asignacion.getId(), asignacion.getPaqueteID(), asignacion.getNecesidadID(), asignacion.getFecha(), estado);
+          EventoQueue evento = new EventoQueue(UUID.randomUUID().toString(), "AsignacionEvento", descripcion);
+          ObjectMapper mapper = new ObjectMapper();
+          byte[] body = mapper.writeValueAsBytes(evento);
+          Map<String, Object> headers = new HashMap<>();
+          AMQP.BasicProperties props = new AMQP.BasicProperties.Builder().headers(headers).build();
+          channel.basicPublish("", queueName, props, body);
+          channel.close();
+          connection.close();
+      } catch (IOException e) {
+          throw new RuntimeException(e);
+      } catch (TimeoutException e) {
+          throw new RuntimeException(e);
+      }
+
       return new AsignacionDTO(asignacion.getId(), asignacion.getPaqueteID(), asignacion.getNecesidadID(), asignacion.getFecha(), estado);
   }
 
@@ -238,6 +275,41 @@ public class Fachada implements FachadaLogistica {
     donacionesClient.cambiarEstadoDeDonacion(paqueteDTO.donacionID(), EstadoDonacionEnum.ACEPTADA);
 
     metricas.counter("entrega").increment();
+
+      //EVENTO
+
+      ConnectionFactory factory = new ConnectionFactory();
+      Map<String, String> env = System.getenv();
+      factory.setHost(env.get("E_QUEUE_HOST"));
+      factory.setUsername(env.get("E_QUEUE_USERNAME"));
+      factory.setPassword(env.get("E_QUEUE_PASSWORD"));
+      factory.setVirtualHost(env.get("E_QUEUE_USERNAME"));
+      try {
+          Connection connection = factory.newConnection();
+          Channel channel = connection.createChannel();
+          String queueName = env.get("E_QUEUE_NAME");
+          channel.queueDeclare(
+                  queueName,
+                  true,
+                  false,
+                  false,
+                  null
+          );
+          AsignacionDTO descripcion = new AsignacionDTO(asignacion.getId(), null, null, null, EstadoAsginacionEnum.COMPLETADA);
+          EventoQueue evento = new EventoQueue(UUID.randomUUID().toString(), "ModificarAsignacionEvento", descripcion);
+          ObjectMapper mapper = new ObjectMapper();
+          byte[] body = mapper.writeValueAsBytes(evento);
+          Map<String, Object> headers = new HashMap<>();
+          AMQP.BasicProperties props = new AMQP.BasicProperties.Builder().headers(headers).build();
+          channel.basicPublish("", queueName, props, body);
+          channel.close();
+          connection.close();
+      } catch (IOException e) {
+          throw new RuntimeException(e);
+      } catch (TimeoutException e) {
+          throw new RuntimeException(e);
+      }
+
   }
 
   @Override
