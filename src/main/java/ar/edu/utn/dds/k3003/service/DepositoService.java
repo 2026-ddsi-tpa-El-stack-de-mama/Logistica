@@ -53,7 +53,7 @@ public class DepositoService {
         factory.setHost(env.get("E_QUEUE_HOST"));
         factory.setUsername(env.get("E_QUEUE_USERNAME"));
         factory.setPassword(env.get("E_QUEUE_PASSWORD"));
-        factory.setVirtualHost(env.get("E_QUEUE_USERNAME"));
+        factory.setUsername(env.get("E_QUEUE_USERNAME"));
         try {
             Connection connection = factory.newConnection();
             Channel channel = connection.createChannel();
@@ -67,7 +67,7 @@ public class DepositoService {
                     null
             );
 
-            DepositoEvento descripcion = new DepositoEvento(deposito.getId());
+            DepositoEvento descripcion = new DepositoEvento(deposito.getId(), deposito.getCapacidadMaxima() - deposito.getStockActual().size(), deposito.getAlgoritmo(), null);
             EventoQueue evento = new EventoQueue(UUID.randomUUID().toString(), "DepositoEvento", descripcion);
             ObjectMapper mapper = new ObjectMapper();
             byte[] body = mapper.writeValueAsBytes(evento);
