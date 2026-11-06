@@ -87,6 +87,38 @@ public class DepositoService {
 
     public String deleteDeposito(String id) {
         depositoR.deleteById(id);
+        ConnectionFactory factory = new ConnectionFactory();
+        Map<String, String> env = System.getenv();
+        factory.setHost(env.get("E_QUEUE_HOST"));
+        factory.setUsername(env.get("E_QUEUE_USERNAME"));
+        factory.setPassword(env.get("E_QUEUE_PASSWORD"));
+        factory.setVirtualHost(env.get("E_QUEUE_USERNAME"));
+        try {
+            Connection connection = factory.newConnection();
+            Channel channel = connection.createChannel();
+            String queueName = env.get("E_QUEUE_NAME");
+            channel.queueDeclare(
+                    queueName,
+                    true,
+                    false,
+                    false,
+                    null
+            );
+            DepositoEvento descripcion = new DepositoEvento(id, null, null, null);
+            EventoQueue evento = new EventoQueue(UUID.randomUUID().toString(), "BorrarDepositoEvento", descripcion);
+            ObjectMapper mapper = new ObjectMapper();
+            byte[] body = mapper.writeValueAsBytes(evento);
+            Map<String, Object> headers = new HashMap<>();
+            AMQP.BasicProperties props = new AMQP.BasicProperties.Builder().headers(headers).build();
+            channel.basicPublish("", queueName, props, body);
+            channel.close();
+            connection.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (TimeoutException e) {
+            throw new RuntimeException(e);
+        }
+
         return "Deposito con id " + id + " eliminado.";
     }
 
