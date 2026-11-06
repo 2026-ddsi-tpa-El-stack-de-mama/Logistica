@@ -53,7 +53,7 @@ public class DepositoService {
         factory.setHost(env.get("E_QUEUE_HOST"));
         factory.setUsername(env.get("E_QUEUE_USERNAME"));
         factory.setPassword(env.get("E_QUEUE_PASSWORD"));
-        factory.setUsername(env.get("E_QUEUE_USERNAME"));
+        factory.setVirtualHost(env.get("E_QUEUE_USERNAME"));
         try {
             Connection connection = factory.newConnection();
             Channel channel = connection.createChannel();
