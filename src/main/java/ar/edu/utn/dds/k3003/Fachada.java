@@ -10,6 +10,7 @@ import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaLogistica;
 import ar.edu.utn.dds.k3003.clientes.DonacionesClient;
 import ar.edu.utn.dds.k3003.clientes.DonadoresYEntidadesClient;
+import ar.edu.utn.dds.k3003.eventos.AsignacionEvento;
 import ar.edu.utn.dds.k3003.eventos.DepositoEvento;
 import ar.edu.utn.dds.k3003.exceptions.*;
 import ar.edu.utn.dds.k3003.model.*;
@@ -222,6 +223,7 @@ public class Fachada implements FachadaLogistica {
       factory.setUsername(env.get("E_QUEUE_USERNAME"));
       factory.setPassword(env.get("E_QUEUE_PASSWORD"));
       factory.setVirtualHost(env.get("E_QUEUE_USERNAME"));
+      AsignacionDTO asignacionDTO = new AsignacionDTO(asignacion.getId(), asignacion.getPaqueteID(), asignacion.getNecesidadID(), asignacion.getFecha(), estado);
       try {
           Connection connection = factory.newConnection();
           Channel channel = connection.createChannel();
@@ -233,7 +235,7 @@ public class Fachada implements FachadaLogistica {
                   false,
                   null
           );
-          AsignacionDTO descripcion = new AsignacionDTO(asignacion.getId(), asignacion.getPaqueteID(), asignacion.getNecesidadID(), asignacion.getFecha(), estado);
+          AsignacionEvento descripcion = new AsignacionEvento(asignacionDTO, depositoID) ;
           EventoQueue evento = new EventoQueue(UUID.randomUUID().toString(), "AsignacionEvento", descripcion);
           ObjectMapper mapper = new ObjectMapper();
           byte[] body = mapper.writeValueAsBytes(evento);
@@ -295,7 +297,8 @@ public class Fachada implements FachadaLogistica {
                   false,
                   null
           );
-          AsignacionDTO descripcion = new AsignacionDTO(asignacion.getId(), null, null, null, EstadoAsginacionEnum.COMPLETADA);
+          AsignacionDTO asignacionDTO = new AsignacionDTO(asignacion.getId(), asignacion.getPaqueteID(), asignacion.getNecesidadID(), asignacion.getFecha(), EstadoAsginacionEnum.COMPLETADA);
+          AsignacionEvento descripcion = new AsignacionEvento(asignacionDTO, paquete.getDeposito().getId()) ;
           EventoQueue evento = new EventoQueue(UUID.randomUUID().toString(), "ModificarAsignacionEvento", descripcion);
           ObjectMapper mapper = new ObjectMapper();
           byte[] body = mapper.writeValueAsBytes(evento);

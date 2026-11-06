@@ -7,6 +7,7 @@ import ar.edu.utn.dds.k3003.catedra.dtos.logistica.EstadoAsginacionEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.PaqueteDTO;
 import ar.edu.utn.dds.k3003.clientes.DonadoresYEntidadesClient;
 import ar.edu.utn.dds.k3003.dtosPropios.AsignacionDirecta;
+import ar.edu.utn.dds.k3003.eventos.AsignacionEvento;
 import ar.edu.utn.dds.k3003.exceptions.AsignacionNoEncontradaException;
 import ar.edu.utn.dds.k3003.exceptions.PaqueteNoEncontradoException;
 import ar.edu.utn.dds.k3003.model.*;
@@ -126,7 +127,9 @@ public class AsignacionService {
                     false,
                     null
             );
-            AsignacionDTO descripcion = new AsignacionDTO(asignacion.getId(), asignacion.getPaqueteID(), asignacion.getNecesidadID(), asignacion.getFecha(), EstadoAsginacionEnum.ASIGNADA);
+            Paquete paquete = paqueteR.findById(asignacion.getPaqueteID()).orElseThrow(() -> new PaqueteNoEncontradoException(asignacion.getPaqueteID()));
+            AsignacionDTO asignacionDTO = new AsignacionDTO(asignacion.getId(), asignacion.getPaqueteID(), asignacion.getNecesidadID(), asignacion.getFecha(), EstadoAsginacionEnum.ASIGNADA);
+            AsignacionEvento descripcion = new AsignacionEvento(asignacionDTO, paquete.getDeposito().getId()) ;
             EventoQueue evento = new EventoQueue(UUID.randomUUID().toString(), "AsignacionEvento", descripcion);
             ObjectMapper mapper = new ObjectMapper();
             byte[] body = mapper.writeValueAsBytes(evento);
