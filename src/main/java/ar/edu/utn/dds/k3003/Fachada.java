@@ -238,7 +238,7 @@ public class Fachada implements FachadaLogistica {
                   null
           );
           AsignacionEvento descripcion = new AsignacionEvento(asignacionDTO, depositoID) ;
-          NecesidadMaterialDTO necesidadAuxiliar = donadoresYEntidadesClient.obtenerNecesidad(necesidadID).getBody();
+          NecesidadMaterialDTO necesidadAuxiliar = donadoresYEntidadesClient.obtenerNecesidad(asignacion.getNecesidadID()).getBody();
           EntidadBeneficaDTO entidad = donadoresYEntidadesClient.buscarEntidad(necesidadAuxiliar.entidadID()).getBody();
           EntidadDepositoEvento descripcionAuxiliar = new EntidadDepositoEvento(entidad, depositoID);
           EventoQueue evento = new EventoQueue(UUID.randomUUID().toString(), "AsignacionEvento", descripcion);
