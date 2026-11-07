@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface AsignacionRepository extends JpaRepository<Asignacion, String> {
     Optional<Asignacion> findByPaqueteID(String paqueteID);
+    Optional<Asignacion> findFirstByPaqueteID(String paqueteID);
 }

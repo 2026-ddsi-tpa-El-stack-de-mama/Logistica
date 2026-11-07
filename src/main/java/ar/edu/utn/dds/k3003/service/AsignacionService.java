@@ -73,6 +73,13 @@ public class AsignacionService {
     public AsignacionDTO postAsignacion(AsignacionDirecta decision) {
         Paquete paquete = paqueteR.findById(decision.paqueteID()).orElseThrow(() -> new PaqueteNoEncontradoException(decision.paqueteID()));
 
+        Optional<Asignacion> existente = asignacionR.findFirstByPaqueteID(paquete.getId());
+        if (existente.isPresent()) {
+            Asignacion actual = existente.get();
+            return new AsignacionDTO(actual.getId(), actual.getPaqueteID(), actual.getNecesidadID(), actual.getFecha(),
+                    EstadoAsginacionEnum.valueOf(actual.getEstado().name()));
+        }
+
         Asignacion asignacion = new Asignacion(
                 null,
                 paquete.getId(),
@@ -131,7 +138,7 @@ public class AsignacionService {
             AsignacionDTO asignacionDTO = new AsignacionDTO(asignacion.getId(), asignacion.getPaqueteID(), asignacion.getNecesidadID(), asignacion.getFecha(), EstadoAsginacionEnum.ASIGNADA);
             AsignacionEvento descripcion = new AsignacionEvento(asignacionDTO, paquete.getDeposito().getId()) ;
             EventoQueue evento = new EventoQueue(UUID.randomUUID().toString(), "AsignacionEvento", descripcion);
-            ObjectMapper mapper = new ObjectMapper();
+            ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
             byte[] body = mapper.writeValueAsBytes(evento);
             Map<String, Object> headers = new HashMap<>();
             AMQP.BasicProperties props = new AMQP.BasicProperties.Builder().headers(headers).build();

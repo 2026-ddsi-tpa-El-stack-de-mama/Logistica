@@ -243,7 +243,7 @@ public class Fachada implements FachadaLogistica {
           EntidadDepositoEvento descripcionAuxiliar = new EntidadDepositoEvento(entidad, depositoID);
           EventoQueue evento = new EventoQueue(UUID.randomUUID().toString(), "AsignacionEvento", descripcion);
           EventoQueue eventoAuxiliar = new EventoQueue(UUID.randomUUID().toString(), "EntidadDepositoEvento", descripcionAuxiliar);
-          ObjectMapper mapper = new ObjectMapper();
+          ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
           byte[] body = mapper.writeValueAsBytes(evento);
           byte[] bodyAuxiliar = mapper.writeValueAsBytes(eventoAuxiliar);
           Map<String, Object> headers = new HashMap<>();
@@ -308,7 +308,7 @@ public class Fachada implements FachadaLogistica {
           AsignacionDTO asignacionDTO = new AsignacionDTO(asignacion.getId(), asignacion.getPaqueteID(), asignacion.getNecesidadID(), asignacion.getFecha(), EstadoAsginacionEnum.COMPLETADA);
           AsignacionEvento descripcion = new AsignacionEvento(asignacionDTO, paquete.getDeposito().getId()) ;
           EventoQueue evento = new EventoQueue(UUID.randomUUID().toString(), "ModificarAsignacionEvento", descripcion);
-          ObjectMapper mapper = new ObjectMapper();
+          ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
           byte[] body = mapper.writeValueAsBytes(evento);
           Map<String, Object> headers = new HashMap<>();
           AMQP.BasicProperties props = new AMQP.BasicProperties.Builder().headers(headers).build();
