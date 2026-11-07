@@ -1,6 +1,7 @@
 package ar.edu.utn.dds.k3003;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.EstadoDonacionEnum;
+import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.EntidadBeneficaDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.NecesidadMaterialDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.TipoNecesidadMaterialEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.logistica.*;
@@ -236,8 +237,10 @@ public class Fachada implements FachadaLogistica {
                   null
           );
           AsignacionEvento descripcion = new AsignacionEvento(asignacionDTO, depositoID) ;
+          NecesidadMaterialDTO necesidadAuxiliar = donadoresYEntidadesClient.obtenerNecesidad(necesidadID).getBody();
+          EntidadBeneficaDTO descripcionAuxiliar = donadoresYEntidadesClient.buscarEntidad(necesidadAuxiliar.entidadID()).getBody();
           EventoQueue evento = new EventoQueue(UUID.randomUUID().toString(), "AsignacionEvento", descripcion);
-          EventoQueue eventoAuxiliar = new EventoQueue(UUID.randomUUID().toString(), "EntidadDepositoEvento", descripcion);
+          EventoQueue eventoAuxiliar = new EventoQueue(UUID.randomUUID().toString(), "EntidadDepositoEvento", descripcionAuxiliar);
           ObjectMapper mapper = new ObjectMapper();
           byte[] body = mapper.writeValueAsBytes(evento);
           byte[] bodyAuxiliar = mapper.writeValueAsBytes(eventoAuxiliar);

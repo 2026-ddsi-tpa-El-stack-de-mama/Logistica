@@ -1,5 +1,6 @@
 package ar.edu.utn.dds.k3003.clientes;
 
+import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.EntidadBeneficaDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.NecesidadMaterialDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
@@ -18,4 +19,9 @@ public interface DonadoresYEntidadesClient {
 
     @GetMapping("/necesidades/{necesidadID}")
     public ResponseEntity<NecesidadMaterialDTO> obtenerNecesidad(@PathVariable String necesidadID);
+
+    @GetMapping("/entidades/{id}")
+    public ResponseEntity<EntidadBeneficaDTO> buscarEntidad(
+            @PathVariable String id
+    );
 }
