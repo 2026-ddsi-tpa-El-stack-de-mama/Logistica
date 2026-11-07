@@ -86,6 +86,11 @@ public class AsignacionWorker extends DefaultConsumer {
             log.info("Buscando necesidades. productoId={}", paquete.producto());
             List<NecesidadMaterialDTO> necesidades = donadoresYEntidadesClient.obtenerNecesidadesInsatisfechasDe(paquete.producto());
             log.info("Necesidades encontradas: {}", necesidades.size());
+            if (necesidades.isEmpty()) {
+                log.info("Sin necesidades para el paquete, queda en stock. paqueteID={}", paquete.id());
+                getChannel().basicAck(envelope.getDeliveryTag(), false);
+                return;
+            }
             ejecutarMatchmaking(paquete, necesidades, algoritmo);
             if (paquete.cantidad() <= 0){
                 throw new CantidadNoSuficienteException();
@@ -99,7 +104,7 @@ public class AsignacionWorker extends DefaultConsumer {
             getChannel().basicNack(
                     envelope.getDeliveryTag(),
                     false,
-                    true
+                    false
             );
         } finally {
             MDC.remove(TraceContext.TRACE_ID);
