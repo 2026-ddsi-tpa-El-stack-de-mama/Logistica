@@ -237,11 +237,14 @@ public class Fachada implements FachadaLogistica {
           );
           AsignacionEvento descripcion = new AsignacionEvento(asignacionDTO, depositoID) ;
           EventoQueue evento = new EventoQueue(UUID.randomUUID().toString(), "AsignacionEvento", descripcion);
+          EventoQueue eventoAuxiliar = new EventoQueue(UUID.randomUUID().toString(), "EntidadDepositoEvento", descripcion);
           ObjectMapper mapper = new ObjectMapper();
           byte[] body = mapper.writeValueAsBytes(evento);
+          byte[] bodyAuxiliar = mapper.writeValueAsBytes(eventoAuxiliar);
           Map<String, Object> headers = new HashMap<>();
           AMQP.BasicProperties props = new AMQP.BasicProperties.Builder().headers(headers).build();
           channel.basicPublish("", queueName, props, body);
+          channel.basicPublish("", queueName, props, bodyAuxiliar);
           channel.close();
           connection.close();
       } catch (IOException e) {
